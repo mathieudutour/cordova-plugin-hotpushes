@@ -17,7 +17,7 @@
 
   <issue>https://github.com/mathieudutour/cordova-plugin-hotpushes/issues</issue>
 
-  <dependency id="com.phonegap.contentsync" url="https://github.com/phonegap/phonegap-plugin-contentsync" commit="58040c2cceb3b1cb71e1a367603bbf6d2a0ee70e" />
+  <dependency id="com.adobe.phonegap.contentsync" url="https://github.com/phonegap/phonegap-plugin-contentsync" commit="58040c2cceb3b1cb71e1a367603bbf6d2a0ee70e" />
 
   <js-module src="www/index.js" name="HotPush">
     <clobbers target="window.HotPush" />
