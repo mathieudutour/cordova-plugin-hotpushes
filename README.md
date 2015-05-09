@@ -45,8 +45,7 @@ Parameter | Description
 `options.versionJSONFileName` | `String` Name of the json file containing the version information
 `options.type` | `String` _(Optional)_ Defines the hot push strategy applied to the content.<br/>The type `replace` is the default behaviour that completely removes existing content then copies new content from a zip file.<br/> The type `merge` will download and replace only content which has changed.
 `options.headers` | `Object` _(Optional)_ Set of headers to use when requesting the remote content from `options.src`.
-`options.archiveURL` | `String` _(Mandatory if `options.type === 'replace'`)_ URL of the zip containing the files to hot push
-`options.bundlePath` | `Object` _(Optional)_ Set of headers to use when requesting the remote content from `options.src`.
+`options.archiveURL` | `String` _(Mandatory if `options.type === 'replace'`)_ URL of the zip containing the files to hot push.
 `options.documentsPath` | `Object` _(Optional)_ Path to the Documents folder (useful for [WKWebView](https://github.com/etiennea/WKWebView))
 
 #### Returns
