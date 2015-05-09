@@ -1,0 +1,29 @@
+{
+  "name": "cordova-plugin-hotpushes",
+  "version": "0.1.0",
+  "cordova": {
+    "id": "cordova-plugin-hotpushes",
+    "platforms": [
+      "ios",
+      "android",
+    ]
+  },
+  "description": "Simple Hot pushes",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mathieudutour/cordova-plugin-hotpushes.git"
+  },
+  "keywords": [
+    "ecosystem:cordova",
+    "cordova",
+    "device",
+    "cordovaplugin",
+    "cordova-ios",
+    "cordova-android",
+    "hotpushes"
+  ],
+  "author": "mathieudutour",
+  "contributors": [],
+  "homepage": "https://github.com/mathieudutour/cordova-plugin-hotpushes.git"
+}
