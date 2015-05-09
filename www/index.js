@@ -79,22 +79,6 @@ var HotPush = function(options) {
   // store the options to this object instance
   this.options = options;
 
-  // triggered on update and completion
-  var self = this;
-  var success = function(result) {
-    if (result && typeof result.progress !== 'undefined') {
-      self.emit('progress', result);
-    } else if (result && typeof result.localPath !== 'undefined') {
-      self.emit('complete', result);
-    }
-  };
-
-  // triggered on error
-  var fail = function(msg) {
-    var e = (typeof msg === 'string') ? new Error(msg) : msg;
-    self.emit('error', e);
-  };
-
   this.localVersion = null;
   this.remoteVersion = null;
   this.countForCallback = null;
@@ -102,6 +86,7 @@ var HotPush = function(options) {
   this.checking = false;
   this._syncs = [];
 
+  var self = this;
   window.hotPushJSONP = function(version) {
     if (!version && !self.fetchFromBundle) { // error when we tried to fetch from /Documents
       // search in bundle
@@ -109,13 +94,13 @@ var HotPush = function(options) {
       this._loadLocalVersion();
     } else if (version) {
       self.localVersion = version;
-      if (self.checking {
+      if (self.checking) {
         self._callback();
       } else {
         self._loadAllLocalFiles();
       }
     }
-  }
+  };
 };
 
 /**
@@ -125,7 +110,7 @@ HotPush.prototype.loadFromLocal = function() {
   this.checking = false;
   this.fetchFromBundle = false;
   this._loadLocalVersion();
-}
+};
 
 /**
 * Check if there is a new version available
@@ -152,16 +137,17 @@ HotPush.prototype.check = function() {
       self._callback();
     } else {
       console.log('nothing on the remote, fallback to the bundle');
+      self.loadFromLocal();
     }
   };
 
   remoteRequest.onerror = function(err) {
     console.log(err);
-    that.emit('error');
+    self.emit('error');
   };
 
   remoteRequest.send();
-}
+};
 
 /**
 * Load all local files
@@ -208,7 +194,7 @@ HotPush.prototype._updateHotPush = function() {
   } else if (this.options.type === 'merge') {
     throw new Error('not implemented yet')
   }
-}
+};
 
 /**
 * Get the path to a local file
@@ -243,7 +229,7 @@ HotPush.prototype._callback = function() {
   this.countForCallback--;
   if (this.countForCallback === 0) {
     if (this.localVersion.timestamp !== this.remoteVersion.timestamp) {
-      console.log('Not the last version, ' + currentVersion.timestamp +' !== ' + myVersion.timestamp);
+      console.log('Not the last version, ' + this.localVersion.timestamp +' !== ' + this.remoteVersion.timestamp);
       this._updateHotPush();
     } else {
       console.log('All good, last version running');
@@ -251,7 +237,7 @@ HotPush.prototype._callback = function() {
   }
 };
 
-HotPush.prototype._loadLocalFile(filename) {
+HotPush.prototype._loadLocalFile = function(filename) {
   var head = document.getElementsByTagName("head")[0];
   var domEl;
   var time = new Date().getTime();
@@ -266,7 +252,7 @@ HotPush.prototype._loadLocalFile(filename) {
     domEl.setAttribute("src", this._getLocalPath(filename) + '?' + time);
   }
   head.appendChild(domEl);
-}
+};
 
 /**
 * Cancel the Hot Push
