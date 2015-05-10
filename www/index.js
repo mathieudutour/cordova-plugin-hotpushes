@@ -79,6 +79,7 @@ var HotPush = function(options) {
   this.remoteVersion = null;
   this.countForCallback = null;
   this.fetchFromBundle = false;
+  this._waitingToLoad = true;
   this._syncs = [];
 
   var self = this;
@@ -90,6 +91,9 @@ var HotPush = function(options) {
       self._loadLocalVersion();
     } else if (version) {
       self.localVersion = version;
+      if (self._waitingToLoad) {
+        self._loadAllLocalFiles();
+      }
       self._callback();
     } else { // error when we tried to fetch from Bundle
       console.log('error when we tried to fetch from Bundle');
@@ -144,20 +148,25 @@ HotPush.prototype.check = function(callbacks) {
 /**
 * Load all local files
 */
-HotPush.prototype.loadAllLocalFiles = function() {
-  var files = this.localVersion.files;
-  var self = this;
-  var loadfile = function(filename) {
-    return function() {
-      self._loadLocalFile(filename);
+HotPush.prototype._loadAllLocalFiles = function() {
+  if (this.localVersion) {
+    this._waitingToLoad = false;
+    var files = this.localVersion.files;
+    var self = this;
+    var loadfile = function(filename) {
+      return function() {
+        self._loadLocalFile(filename);
+      };
     };
-  };
-  for(var i = 0; i < files.length; i++) {
-    if (files[i].position) {
-      setTimeout(loadfile(files[i].name), files[i].position * 100);
-    } else {
-      loadfile(files[i].name)();
+    for(var i = 0; i < files.length; i++) {
+      if (files[i].position) {
+        setTimeout(loadfile(files[i].name), files[i].position * 100);
+      } else {
+        loadfile(files[i].name)();
+      }
     }
+  } else {
+    this._waitingToLoad = true;
   }
 };
 
