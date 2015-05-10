@@ -163,7 +163,7 @@ HotPush.prototype._loadAllLocalFiles = function() {
     if (files[i].position) {
       setTimeout(loadfile(files[i].name), files[i].position * 100);
     } else {
-      loadfile(files[i].name);
+      loadfile(files[i].name)();
     }
   }
 };
