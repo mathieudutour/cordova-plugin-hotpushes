@@ -216,7 +216,7 @@ HotPush.prototype._loadLocalVersion = function() {
   var domEl = document.createElement("script");
   domEl.setAttribute("type", "text/javascript");
   domEl.setAttribute("src", this._getLocalPath(this.options.versionJSONPFileName) + '?' + time);
-  domEl.onerror = function() {window.hotPushJSONP(null);}
+  domEl.onerror = function(err) {console.log(err);window.hotPushJSONP(null);}
   head.appendChild(domEl);
 };
 
