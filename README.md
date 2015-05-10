@@ -31,6 +31,14 @@ var hotpushes = HotPush.sync({
 
 hotpushes.check(); // check for update
 
+hotpushes.on('updateFound', function() {
+  hotpushes.udpate();
+});
+
+hotpushes.on('updateComplete', function() {
+  location.reload();
+});
+
 ```
 
 ## API
@@ -63,12 +71,61 @@ var hotpushes = HotPush.sync({
 });
 ```
 
+### HotPush.check()
+
+Load the local files and check if there is a new version available on the server.
+
+Parameter | Description
+--------- | ------------
+`no parameters` |
+
+### HotPush.update()
+
+Download the files on the server.
+
+Parameter | Description
+--------- | ------------
+`no parameters` |
+
+
 ### hotpushes.on(event, callback)
 
 Parameter | Description
 --------- | ------------
 `event` | `String` Name of the event to listen to. See below for all the event names.
 `callback` | `Function` is called when the event is triggered.
+
+#### hotpushes.on('updateFound', callback)
+
+The event `updateFound` will be triggered when a new update is found on the server.
+
+Callback Parameter | Description
+------------------ | -----------
+`no parameters` |
+
+##### Example
+
+```javascript
+hotpushes.on('updateFound', function() {
+  hotpushes.update();
+});
+```
+
+#### hotpushes.on('noUpdateFound', callback)
+
+The event `noUpdateFound` will be triggered when no new update is found on the server.
+
+Callback Parameter | Description
+------------------ | -----------
+`no parameters` |
+
+##### Example
+
+```javascript
+hotpushes.on('noUpdateFound', function() {
+  alert('All good!');
+});
+```
 
 #### hotpushes.on('progress', callback)
 
@@ -88,21 +145,19 @@ hotpushes.on('progress', function(data) {
 });
 ```
 
-#### hotpushes.on('complete', callback)
+#### hotpushes.on('updateComplete', callback)
 
-The event `complete` will be triggered when the content has been successfully cached onto the device.
+The event `updateComplete` will be triggered when the content has been successfully cached onto the device.
 
 Callback Parameter | Description
 ------------------ | -----------
-`data.localPath` | `String` The file path to the cached content. The file path will be different on each platform and may be relative or absolute. However, it is guaraneteed to be a compatible reference in the browser.
-`data.cached` | `Boolean` Set to `true` if options.type is set to `local` and cached content exists. Set to `false` otherwise.
+`no parameters` |
 
 ##### Example
 
 ```javascript
-hotpushes.on('complete', function(data) {
-    // data.localPath
-    // data.cached
+hotpushes.on('updateComplete', function() {
+  location.reload();
 });
 ```
 
@@ -124,7 +179,7 @@ hotpushes.on('error', function(e) {
 
 #### hotpushes.on('cancel', callback)
 
-The event `cancel` will trigger when `sync.cancel` is called.
+The event `cancel` will trigger when `hotpushes.cancel` is called.
 
 Callback Parameter | Description
 ------------------ | -----------
@@ -134,7 +189,7 @@ Callback Parameter | Description
 
 ```javascript
 hotpushes.on('cancel', function() {
-    // user cancelled the sync operation
+    // user cancelled the hot push
 });
 ```
 
@@ -142,21 +197,10 @@ hotpushes.on('cancel', function() {
 
 Cancels the content sync operation and triggers the cancel callback.
 
-#### Example
-```javascript
-var hotpushes = HotPush.sync({ src: 'http://myserver/app/1', id: 'app-1' });
-
-hotpushes.on('cancel', function() {
-    console.log('content sync was cancelled');
-});
-
-hotpushes.cancel();
-```
 
 ### HotPush.PROGRESS_STATE
 
-An enumeration that describes the current progress state. The mapped `String`
-values can be customized for the user's app.
+An enumeration that describes the current progress state.
 
 Integer | Description
 ------- | -----------

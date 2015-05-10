@@ -97,24 +97,16 @@ var HotPush = function(options) {
       self._callback();
     } else { // error when we tried to fetch from Bundle
       console.log('error when we tried to fetch from Bundle');
+      this.emit('error', new Error('error when we tried to fetch from Bundle'));
     }
   };
 };
 
 /**
-* Load files from local
-*/
-HotPush.prototype.loadFromLocal = function() {
-  this.fetchFromBundle = false;
-  this._loadLocalVersion();
-};
-
-/**
 * Check if there is a new version available
 */
-HotPush.prototype.check = function(callbacks) {
+HotPush.prototype.check = function() {
   var self = this;
-  this._callbacks = callbacks || {};
 
   // reset variable
   this.fetchFromBundle = false;
@@ -133,13 +125,14 @@ HotPush.prototype.check = function(callbacks) {
       self.remoteVersion = JSON.parse(remoteRequest.responseText);
       self._callback();
     } else {
-      console.log('nothing on the remote, fallback to the bundle');
-      self.loadFromLocal();
+      console.log('nothing on the remote');
+      this.emit('noUpdateFound');
     }
   };
 
   remoteRequest.onerror = function(err) {
     console.log(err);
+    this.emit('error', err);
   };
 
   remoteRequest.send();
@@ -173,25 +166,26 @@ HotPush.prototype._loadAllLocalFiles = function() {
 /**
 * Fetch the local version of the version file
 */
-HotPush.prototype._updateHotPush = function() {
+HotPush.prototype.update = function() {
   var self = this;
   if (this.options.type === 'replace') {
     this._syncs = [ContentSync.sync({ src: this.options.archiveURL, id: 'assets' })];
 
     this._syncs[0].on('progress', function(data) {
-      console.log(data.progress)
+      this.emit('progress', data);
     });
 
-    this._syncs[0].on('complete', function(data) {
-      location.reload();
+    this._syncs[0].on('complete', function() {
+      this.emit('updateComplete');
     });
 
     this._syncs[0].on('error', function(e) {
       console.log(e)
+      this.emit('error', e);
     });
 
   } else if (this.options.type === 'merge') {
-    throw new Error('not implemented yet')
+    this.emit('error', new Error('not implemented yet'));
   }
 };
 
@@ -229,9 +223,11 @@ HotPush.prototype._callback = function() {
   if (this.countForCallback === 0) {
     if (this.localVersion.timestamp !== this.remoteVersion.timestamp) {
       console.log('Not the last version, ' + this.localVersion.timestamp +' !== ' + this.remoteVersion.timestamp);
+      this.emit('updateFound');
       this._updateHotPush();
     } else {
       console.log('All good, last version running');
+      this.emit('noUpdateFound');
     }
   }
 };
@@ -265,8 +261,56 @@ HotPush.prototype.cancel = function() {
   this._syncs.forEach(function(sync) {
     sync.cancel();
   });
+  this.emit('cancel');
 };
 
+/**
+* Listen for an event.
+*
+* The following events are supported:
+*
+*   - noUpdateFound
+*   - updateFound
+*   - progress
+*   - cancel
+*   - error
+*   - updateComplete
+*
+* @param {String} eventName to subscribe to.
+* @param {Function} callback triggered on the event.
+*/
+
+HotPush.prototype.on = function(eventName, callback) {
+  if (this._handlers.hasOwnProperty(eventName)) {
+      this._handlers[eventName].push(callback);
+  }
+};
+
+/**
+* Emit an event.
+*
+* This is intended for internal use only.
+*
+* @param {String} eventName is the event to trigger.
+* @param {*} all arguments are passed to the event listeners.
+*
+* @return {Boolean} is true when the event is triggered otherwise false.
+*/
+
+HotPush.prototype.emit = function() {
+  var args = Array.prototype.slice.call(arguments);
+  var eventName = args.shift();
+
+  if (!this._handlers.hasOwnProperty(eventName)) {
+      return false;
+  }
+
+  for (var i = 0, length = this._handlers[eventName].length; i < length; i++) {
+      this._handlers[eventName][i].apply(undefined,args);
+  }
+
+  return true;
+};
 
 /*!
 * Hot Pushes Plugin.
