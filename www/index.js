@@ -96,6 +96,8 @@ var HotPush = function(options) {
       } else {
         self._loadAllLocalFiles();
       }
+    } else { // error when we tried to fetch from Bundle
+      console.log('error when we tried to fetch from Bundle');
     }
   };
 };
@@ -217,6 +219,7 @@ HotPush.prototype._loadLocalVersion = function() {
   domEl.setAttribute("src", this._getLocalPath(this.options.versionJSONPFileName) + '?' + time);
   domEl.onerror = function() {window.hotPushJSONP(null);}
   setTimeout(function(){window.hotPushJSONP(null);},100); // check for timeout
+  head.appendChild(domEl);
 };
 
 /**
