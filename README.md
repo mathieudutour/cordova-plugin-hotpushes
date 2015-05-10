@@ -28,9 +28,11 @@ var hotpushes = HotPush.sync({
   archiveURL: 'http://myserver/hot/assets.zip'
 });
 
-hotpushes.loadFromLocal(); // first call to load from local (either bundle or Documents, depending if there is something in Documents
+
 
 hotpushes.check(); // check for update
+
+hotpushes.loadAllLocalFiles(); // load files from local (either bundle or Documents, depending if there is something in Documents). Needs to be after a check (to fetch the local version)
 
 ```
 

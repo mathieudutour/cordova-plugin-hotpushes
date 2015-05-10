@@ -79,7 +79,6 @@ var HotPush = function(options) {
   this.remoteVersion = null;
   this.countForCallback = null;
   this.fetchFromBundle = false;
-  this.checking = false;
   this._syncs = [];
 
   var self = this;
@@ -91,11 +90,7 @@ var HotPush = function(options) {
       self._loadLocalVersion();
     } else if (version) {
       self.localVersion = version;
-      if (self.checking) {
-        self._callback();
-      } else {
-        self._loadAllLocalFiles();
-      }
+      self._callback();
     } else { // error when we tried to fetch from Bundle
       console.log('error when we tried to fetch from Bundle');
     }
@@ -106,7 +101,6 @@ var HotPush = function(options) {
 * Load files from local
 */
 HotPush.prototype.loadFromLocal = function() {
-  this.checking = false;
   this.fetchFromBundle = false;
   this._loadLocalVersion();
 };
@@ -114,18 +108,16 @@ HotPush.prototype.loadFromLocal = function() {
 /**
 * Check if there is a new version available
 */
-HotPush.prototype.check = function(again) {
+HotPush.prototype.check = function(callbacks) {
   var self = this;
+  this._callbacks = callbacks || {};
 
   // reset variable
-  this.checking = true;
   this.fetchFromBundle = false;
   this.countForCallback = 2;
 
-  if (again) {
-    // fetch localVersion
-    this._loadLocalVersion();
-  }
+  // fetch localVersion
+  this._loadLocalVersion();
 
   // fetch remoteVersion
   var remoteRequest = new XMLHttpRequest();
@@ -144,7 +136,6 @@ HotPush.prototype.check = function(again) {
 
   remoteRequest.onerror = function(err) {
     console.log(err);
-    self.emit('error');
   };
 
   remoteRequest.send();
@@ -153,7 +144,7 @@ HotPush.prototype.check = function(again) {
 /**
 * Load all local files
 */
-HotPush.prototype._loadAllLocalFiles = function() {
+HotPush.prototype.loadAllLocalFiles = function() {
   var files = this.localVersion.files;
   var self = this;
   var loadfile = function(filename) {
@@ -188,7 +179,6 @@ HotPush.prototype._updateHotPush = function() {
 
     this._syncs[0].on('error', function(e) {
       console.log(e)
-      self.emit('error');
     });
 
   } else if (this.options.type === 'merge') {
@@ -262,62 +252,15 @@ HotPush.prototype._loadLocalFile = function(filename) {
 */
 
 HotPush.prototype.cancel = function() {
-  var self = this;
   this.countForCallback = 100;
   this._syncs.forEach(function(sync) {
     sync.cancel();
   });
-  self.emit('cancel');
 };
 
-/**
-* Listen for an event.
-*
-* The following events are supported:
-*
-*   - progress
-*   - cancel
-*   - error
-*   - completion
-*
-* @param {String} eventName to subscribe to.
-* @param {Function} callback triggered on the event.
-*/
-
-HotPush.prototype.on = function(eventName, callback) {
-  if (this._handlers.hasOwnProperty(eventName)) {
-      this._handlers[eventName].push(callback);
-  }
-};
-
-/**
-* Emit an event.
-*
-* This is intended for internal use only.
-*
-* @param {String} eventName is the event to trigger.
-* @param {*} all arguments are passed to the event listeners.
-*
-* @return {Boolean} is true when the event is triggered otherwise false.
-*/
-
-HotPush.prototype.emit = function() {
-  var args = Array.prototype.slice.call(arguments);
-  var eventName = args.shift();
-
-  if (!this._handlers.hasOwnProperty(eventName)) {
-      return false;
-  }
-
-  for (var i = 0, length = this._handlers[eventName].length; i < length; i++) {
-      this._handlers[eventName][i].apply(undefined,args);
-  }
-
-  return true;
-};
 
 /*!
-* Content Sync Plugin.
+* Hot Pushes Plugin.
 */
 
 module.exports = {
