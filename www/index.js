@@ -203,7 +203,7 @@ HotPush.prototype._getLocalPath = function(filename) {
   if (this.fetchFromBundle) {
     return '/' + filename;
   } else {
-    return this.documentsPath + filename;
+    return this.options.documentsPath + filename;
   }
 };
 
@@ -218,7 +218,6 @@ HotPush.prototype._loadLocalVersion = function() {
   domEl.setAttribute("type", "text/javascript");
   domEl.setAttribute("src", this._getLocalPath(this.options.versionJSONPFileName) + '?' + time);
   domEl.onerror = function() {window.hotPushJSONP(null);}
-  setTimeout(function(){window.hotPushJSONP(null);},100); // check for timeout
   head.appendChild(domEl);
 };
 
