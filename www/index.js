@@ -68,12 +68,8 @@ var HotPush = function(options) {
     options.headers = null;
   }
 
-  if (typeof options.bundlePath === 'undefined') {
-    options.bundlePath = cordova.file.applicationDirectory + 'www/';
-  }
-
   if (typeof options.documentsPath === 'undefined') {
-    options.documentsPath = cordova.file.applicationStorageDirectory + 'Documents/';
+    options.documentsPath = 'cdvfile://localhost/persistent/';
   }
 
   // store the options to this object instance
