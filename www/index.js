@@ -114,7 +114,7 @@ HotPush.prototype.loadFromLocal = function() {
 /**
 * Check if there is a new version available
 */
-HotPush.prototype.check = function() {
+HotPush.prototype.check = function(again) {
   var self = this;
 
   // reset variable
@@ -122,8 +122,10 @@ HotPush.prototype.check = function() {
   this.fetchFromBundle = false;
   this.countForCallback = 2;
 
-  // fetch localVersion
-  this._loadLocalVersion();
+  if (again) {
+    // fetch localVersion
+    this._loadLocalVersion();
+  }
 
   // fetch remoteVersion
   var remoteRequest = new XMLHttpRequest();
