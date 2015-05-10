@@ -4,7 +4,7 @@
  * Module dependencies.
  */
 
-var ContentSync = cordova.require('com.adobe.phonegap.contentsync.ContentSync').ContentSync;
+var ContentSync = cordova.require('com.adobe.phonegap.contentsync.ContentSync');
 
 /**
  * HotPush constructor.
