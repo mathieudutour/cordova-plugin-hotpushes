@@ -83,11 +83,12 @@ var HotPush = function(options) {
   this._syncs = [];
 
   var self = this;
+
   window.hotPushJSONP = function(version) {
     if (!version && !self.fetchFromBundle) { // error when we tried to fetch from /Documents
       // search in bundle
       self.fetchFromBundle = true;
-      this._loadLocalVersion();
+      self._loadLocalVersion();
     } else if (version) {
       self.localVersion = version;
       if (self.checking) {
