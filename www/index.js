@@ -153,12 +153,19 @@ HotPush.prototype.check = function() {
 */
 HotPush.prototype._loadAllLocalFiles = function() {
   var files = this.localVersion.files;
+  var self = this;
+  var loadfile = function(filename) {
+    return function() {
+      self._loadLocalFile(filename);
+    };
+  };
   for(var i = 0; i < files.length; i++) {
     var file = files[i];
-    console.log(file)
-    setTimeout(function() {
-      this._loadLocalFile(file.name);
-    }.bind(this), file.position * 100);
+    if (file[i].position) {
+      setTimeout(loadfile(files[i].name), file[i].position * 100);
+    } else {
+      loadfile(files[i].name);
+    }
   }
 };
 
