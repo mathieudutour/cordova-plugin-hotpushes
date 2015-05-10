@@ -152,21 +152,12 @@ HotPush.prototype.check = function() {
 * Load all local files
 */
 HotPush.prototype._loadAllLocalFiles = function() {
-  var step = 0;
-  var nbOfFilesInThisStep;
-
-  do {
-    nbOfFilesInThisStep = 0;
-    for(var i = 0; i < this.localVersion.files.length; i++) {
-      if (this.localVersion.files[i].position === step) {
-        nbOfFilesInThisStep++;
-        setTimeout(function() {
-          this._loadLocalFile(this.localVersion.files[i].name);
-        }.bind(this), step * 100);
-      }
-    }
-    step ++;
-  } while (nbOfFilesInThisStep > 0);
+  var files = this.localVersion.files;
+  for(var i = 0; i < files.length; i++) {
+    setTimeout(function() {
+      this._loadLocalFile(files[i].name);
+    }.bind(this), files[i].position * 100);
+  }
 };
 
 /**
