@@ -97,7 +97,7 @@ var HotPush = function(options) {
       self._callback();
     } else { // error when we tried to fetch from Bundle
       console.log('error when we tried to fetch from Bundle');
-      this.emit('error', new Error('error when we tried to fetch from Bundle'));
+      self.emit('error', new Error('error when we tried to fetch from Bundle'));
     }
   };
 };
@@ -126,13 +126,13 @@ HotPush.prototype.check = function() {
       self._callback();
     } else {
       console.log('nothing on the remote');
-      this.emit('noUpdateFound');
+      self.emit('noUpdateFound');
     }
   };
 
   remoteRequest.onerror = function(err) {
     console.log(err);
-    this.emit('error', err);
+    self.emit('error', err);
   };
 
   remoteRequest.send();
