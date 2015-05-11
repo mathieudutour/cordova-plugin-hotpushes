@@ -18,8 +18,8 @@ cordova plugin add https://github.com/mathieudutour/cordova-plugin-hotpushes
 
 
 # Examples
-- [Replace example](https://github.com/mathieudutour/Replace_example.md)
-- [Merge example](https://github.com/mathieudutour/Merge_example.md)
+- [Replace example](./examples/Replace_example.md)
+- [Merge example](./examples/Merge_example.md)
 
 # API
 
