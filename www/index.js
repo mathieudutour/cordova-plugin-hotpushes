@@ -169,7 +169,7 @@ HotPush.prototype._loadAllLocalFiles = function() {
 HotPush.prototype.update = function() {
   var self = this;
   if (this.options.type === 'replace') {
-    this._syncs = [ContentSync.sync({ src: this.options.archiveURL, id: 'assets' })];
+    this._syncs = [ContentSync.sync({ src: this.options.archiveURL, id: 'assets', headers: this.options.headers})];
 
     this._syncs[0].on('progress', function(data) {
       this.emit('progress', data);
