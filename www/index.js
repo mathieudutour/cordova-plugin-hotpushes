@@ -224,7 +224,6 @@ HotPush.prototype._callback = function() {
     if (this.localVersion.timestamp !== this.remoteVersion.timestamp) {
       console.log('Not the last version, ' + this.localVersion.timestamp +' !== ' + this.remoteVersion.timestamp);
       this.emit('updateFound');
-      this._updateHotPush();
     } else {
       console.log('All good, last version running');
       this.emit('noUpdateFound');
