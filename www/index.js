@@ -174,16 +174,16 @@ HotPush.prototype.update = function() {
     this._syncs = [ContentSync.sync({ src: this.options.archiveURL, id: 'assets', headers: this.options.headers})];
 
     this._syncs[0].on('progress', function(data) {
-      this.emit('progress', data);
+      self.emit('progress', data);
     });
 
     this._syncs[0].on('complete', function() {
-      this.emit('updateComplete');
+      self.emit('updateComplete');
     });
 
     this._syncs[0].on('error', function(e) {
       console.log(e)
-      this.emit('error', e);
+      self.emit('error', e);
     });
 
   } else if (this.options.type === 'merge') {
