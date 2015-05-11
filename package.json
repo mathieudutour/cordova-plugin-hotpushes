@@ -5,7 +5,7 @@
     "id": "cordova-plugin-hotpushes",
     "platforms": [
       "ios",
-      "android",
+      "android"
     ]
   },
   "description": "Simple Hot pushes",

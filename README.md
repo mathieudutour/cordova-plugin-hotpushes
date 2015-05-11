@@ -7,7 +7,7 @@ _This plugin is a work in progress and it is not production ready. PR welcome._
 # Installation
 
 ```
-cordova plugin add https://github.com/mathieudutour/cordova-plugin-hotpushes
+cordova plugin add cordova-plugin-hotpushes
 ```
 
 # Supported Platforms

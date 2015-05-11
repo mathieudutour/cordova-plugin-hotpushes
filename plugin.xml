@@ -3,15 +3,13 @@
 
   <name>Hot Pushes</name>
 
-  <description>
-    A simple hot code push for ios and android.
-  </description>
+  <description>A simple hot code push for ios and android.</description>
 
   <author>Mathieu Dutour</author>
 
   <license>MIT</license>
 
-  <keywords>Hot pushes</keywords>
+  <keywords>Hot pushes,ecosystem:cordova,cordova,device,cordovaplugin,cordova-ios,hotpushes</keywords>
 
   <repo>https://github.com/mathieudutour/cordova-plugin-hotpushes.git</repo>
 
