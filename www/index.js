@@ -24,10 +24,12 @@ var ContentSync = cordova.require('com.adobe.phonegap.contentsync.ContentSync');
 
 var HotPush = function(options) {
   this._handlers = {
+    'noUpdateFound': [],
+    'updateFound': [],
     'progress': [],
     'cancel': [],
     'error': [],
-    'complete': []
+    'updateComplete': []
   };
 
   // require options parameter
