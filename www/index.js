@@ -145,7 +145,7 @@ HotPush.prototype.update = function() {
 
     this._syncs[0].on('complete', function() {
       self.remoteVersion.location = 'documents';
-      localStorage.setItem("hotpushes_localVersion", self.remoteVersion);
+      localStorage.setItem("hotpushes_localVersion", JSON.stringify(self.remoteVersion));
       self.emit('updateComplete');
     });
 
@@ -175,7 +175,7 @@ HotPush.prototype._getLocalPath = function(filename) {
 */
 
 HotPush.prototype._loadLocalVersion = function(callback) {
-  this.localVersion = this.localVersion || localStorage.getItem("hotpushes_localVersion");
+  this.localVersion = this.localVersion || JSON.parse(localStorage.getItem("hotpushes_localVersion"));
 
   if (this.localVersion) {
     return callback();
@@ -191,7 +191,7 @@ HotPush.prototype._loadLocalVersion = function(callback) {
         // Success!
         self.localVersion = JSON.parse(request.responseText);
         self.localVersion.location = 'bundle';
-        localStorage.setItem("hotpushes_localVersion", self.localVersion);
+        localStorage.setItem("hotpushes_localVersion", JSON.stringify(self.localVersion));
         callback();
       } else {
         console.log('nothing on the bundle');
