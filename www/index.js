@@ -111,23 +111,38 @@ HotPush.prototype.check = function() {
 * Load all local files
 */
 HotPush.prototype.loadAllLocalFiles = function() {
-  var self = this;
   if (this.localVersion) {
-    var files = this.localVersion.files;
-    var loadfile = function(filename) {
-      return function() {
-        self._loadLocalFile(filename);
-      };
-    };
-    for(var i = 0; i < files.length; i++) {
-      if (files[i].position) {
-        setTimeout(loadfile(files[i].name), files[i].position * 10);
-      } else {
-        loadfile(files[i].name)();
-      }
-    }
+    this._currentPosition = 0;
+    this._loadLocalFilesAtCurrentPosition();
   } else {
     this._loadLocalVersion(this.loadAllLocalFiles.bind(this));
+  }
+};
+
+/**
+* Load local files of position
+*/
+HotPush.prototype._loadLocalFilesAtCurrentPosition = function() {
+  var files = this.localVersion.files;
+  this._nbScriptToLoadForTheCurrentPosition = files.reduce(function(a, file) {
+    return a + file.position === this._currentPosition &&
+      file.name.split('.js').length > 1 ? 1 : 0;
+  }.bind(this), 0);
+  for(var i = 0; i < files.length; i++) {
+    if (files[i].position === this._currentPosition) {
+      this._loadLocalFile(files[i].name);
+    }
+  }
+};
+
+/**
+* Load local files of position
+*/
+HotPush.prototype._hasloadedLocalFile = function() {
+  this._nbScriptToLoadForTheCurrentPosition--;
+  if (!this._nbScriptToLoadForTheCurrentPosition) {
+    this._currentPosition++;
+    this._loadLocalFilesAtCurrentPosition();
   }
 };
 
@@ -234,6 +249,12 @@ HotPush.prototype._loadLocalFile = function(filename) {
     domEl = document.createElement('script');
     domEl.setAttribute("type", "text/javascript");
     domEl.setAttribute("src", this._getLocalPath(filename) + '?' + time);
+    domEl.onload = function() {
+      this._hasloadedLocalFile();
+    }.bind(this);
+    domEl.onerror = function() {
+      this._hasloadedLocalFile();
+    }.bind(this);
   }
   head.appendChild(domEl);
 };
