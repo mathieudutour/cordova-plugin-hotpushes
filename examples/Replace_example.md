@@ -3,12 +3,12 @@
 ```javascript
 var hotpushes = HotPush.sync({
   src: 'http://myserver/hot/',
-  versionJSONPFileName: 'version.jsonp',
-  versionJSONFileName: 'version.json',
+  versionFileName: 'version.json',
   type: 'replace',
   archiveURL: 'http://myserver/hot/assets.zip'
 });
 
+hotpushes.loadAllLocalFiles() // load local files
 
 hotpushes.check(); // check for update
 
@@ -26,6 +26,22 @@ On `http://myserver/hot/`, there should be 2 files :
 
 - version.json
 - assets.zip
+
+In the `bundle` of the app, there should be 1 file + the files listed in `version.json` :
+
+- version.json
+
+### Example
+```
+www/
+    version.json
+	libs.js
+	app.js
+	
+	styles/
+		app.css
+		libs.css
+```
 
 ## version.json
 This file contains a timestamp of its creation and a array describing files to load.
@@ -80,24 +96,15 @@ This file contains a timestamp of its creation and a array describing files to l
 ```
 
 ## assets.zip
-This file contains the files listed in `version.json` as well as the file `version.jsonp`.
+This file contains the files listed in `version.json`.
 
 ### Example
 ```
 /
-	version.jsonp
 	libs.js
 	app.js
 	
 	styles/
 		app.css
 		libs.css
-```
-
-## version.jsonp
-This file contains the same content as `version.json` wrapped inside the `hotPushJSONP` callback.
-
-### Example
-```
-hotPushJSONP({...});
 ```

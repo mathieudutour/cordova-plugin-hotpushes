@@ -3,11 +3,11 @@
 ```javascript
 var hotpushes = HotPush.sync({
   src: 'http://myserver/hot/',
-  versionJSONPFileName: 'version.jsonp',
-  versionJSONFileName: 'version.json',
+  versionFileName: 'version.json',
   type: 'merge'
 });
 
+hotpushes.loadAllLocalFiles() // load local files
 
 hotpushes.check(); // check for update
 
@@ -21,16 +21,14 @@ hotpushes.on('updateComplete', function() {
 
 ```
 
-On `http://myserver/hot/`, there should be 2 files + the files listed in `version.json` :
+On `http://myserver/hot/` and in the `bundle` of the app, there should be 1 file + the files listed in `version.json` :
 
 - version.json
-- version.jsonp
 
 ### Example
 ```
 http://myserver/hot/
     version.json
-	version.jsonp
 	libs.js
 	app.js
 	
@@ -93,12 +91,4 @@ This file contains a timestamp of its creation and a array describing files to l
 		}
 	]
 }
-```
-
-## version.jsonp
-This file contains the same content as `version.json` wrapped inside the `hotPushJSONP` callback.
-
-### Example
-```
-hotPushJSONP({...});
 ```

@@ -28,8 +28,7 @@ cordova plugin add cordova-plugin-hotpushes
 Parameter | Description
 --------- | ------------
 `options.src` | `String` URL to hot push endpoint
-`options.versionJSONPFileName` | `String` Name of the jsonp file containing the version information.
-`options.versionJSONFileName` | `String` Name of the json file containing the version information
+`options.versionFileName` | `String` Name of the json file containing the version information
 `options.type` | `String` _(Optional)_ Defines the hot push strategy applied to the content.<br/>The type `replace` is the default behaviour that completely removes existing content then copies new content from a zip file.<br/> The type `merge` will download and replace only content which has changed.
 `options.headers` | `Object` _(Optional)_ Set of headers to use when requesting the remote content from `options.src`.
 `options.archiveURL` | `String` _(Mandatory if `options.type === 'replace'`)_ URL of the zip containing the files to hot push.
@@ -44,22 +43,29 @@ Parameter | Description
 ```javascript
 var hotpushes = HotPush.sync({
   src: 'http://myserver/hot/',
-  versionJSONPFileName: 'version.jsonp',
-  versionJSONFileName: 'version.json',
+  versionFileName: 'version.json',
   type: 'replace',
   archiveURL: 'http://myserver/hot/assets.zip'
 });
 ```
 
-## HotPush.check()
+## hotpushes.loadAllLocalFiles()
 
-Load the local files and check if there is a new version available on the server.
+Load the local files.
 
 Parameter | Description
 --------- | ------------
 `no parameters` |
 
-## HotPush.update()
+## hotpushes.check()
+
+Check if there is a new version available on the server.
+
+Parameter | Description
+--------- | ------------
+`no parameters` |
+
+## hotpushes.update()
 
 Download the files on the server.
 

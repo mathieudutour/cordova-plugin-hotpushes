@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-hotpushes",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "cordova": {
     "id": "cordova-plugin-hotpushes",
     "platforms": [

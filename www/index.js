@@ -11,8 +11,7 @@ var ContentSync = cordova.require('com.adobe.phonegap.contentsync.ContentSync');
  *
  * @param {Object} options to initiate a new content synchronization.
  *   @param {String} src is a URL to hot push endpoint
- *   @param {String} versionJSONPFileName is the name of the jsonp file containing the version information
- *   @param {String} versionJSONFileName is the name of the json file containing the version information
+ *   @param {String} versionFileName is the name of the json file containing the version information
  *   @param {Object} type defines the hot push strategy applied to the content.
  *     @param {String} replace completely removes existing content then copies new content from a zip file.
  *     @param {String} merge   download and replace only content which has changed
@@ -42,14 +41,9 @@ var HotPush = function(options) {
     throw new Error('The options.src argument is required.');
   }
 
-  // require options.versionJSONPFileName parameter
-  if (typeof options.versionJSONPFileName === 'undefined') {
-    throw new Error('The options.versionJSONPFileName argument is required.');
-  }
-
   // require options.versionJSONFileName parameter
-  if (typeof options.versionJSONFileName === 'undefined') {
-    throw new Error('The options.versionJSONFileName argument is required.');
+  if (typeof options.versionFileName === 'undefined') {
+    throw new Error('The options.versionFileName argument is required.');
   }
 
   // define synchronization strategy
@@ -79,73 +73,45 @@ var HotPush = function(options) {
 
   this.localVersion = null;
   this.remoteVersion = null;
-  this.countForCallback = null;
-  this.fetchFromBundle = false;
-  this._waitingToLoad = true;
   this._syncs = [];
 
-  var self = this;
-
-  window.hotPushJSONP = function(version) {
-    if (!version && !self.fetchFromBundle) { // error when we tried to fetch from /Documents
-      // search in bundle
-      self.fetchFromBundle = true;
-      self._loadLocalVersion();
-    } else if (version) {
-      self.localVersion = version;
-      if (self._waitingToLoad) {
-        self._loadAllLocalFiles();
-      }
-      self._callback();
-    } else { // error when we tried to fetch from Bundle
-      console.log('error when we tried to fetch from Bundle');
-      self.emit('error', new Error('error when we tried to fetch from Bundle'));
-    }
-  };
 };
 
 /**
 * Check if there is a new version available
 */
 HotPush.prototype.check = function() {
-  var self = this;
-
-  // reset variable
-  this.fetchFromBundle = false;
-  this.countForCallback = 2;
-
   // fetch localVersion
-  this._loadLocalVersion();
+  this._loadLocalVersion(function() {
+    // fetch remoteVersion
+    var remoteRequest = new XMLHttpRequest();
+    remoteRequest.open('GET', this.options.src + this.options.versionFileName, true);
 
-  // fetch remoteVersion
-  var remoteRequest = new XMLHttpRequest();
-  remoteRequest.open('GET', this.options.src + this.options.versionJSONFileName, true);
+    remoteRequest.onload = function() {
+      if (remoteRequest.status >= 200 && remoteRequest.status < 400) {
+        // Success!
+        this.remoteVersion = JSON.parse(remoteRequest.responseText);
+        this._verifyVersions();
+      } else {
+        console.log('nothing on the remote');
+        this.emit('noUpdateFound');
+      }
+    }.bind(this);
 
-  remoteRequest.onload = function() {
-    if (remoteRequest.status >= 200 && remoteRequest.status < 400) {
-      // Success!
-      self.remoteVersion = JSON.parse(remoteRequest.responseText);
-      self._callback();
-    } else {
-      console.log('nothing on the remote');
-      self.emit('noUpdateFound');
-    }
-  };
+    remoteRequest.onerror = function(err) {
+      console.log(err);
+      this.emit('error', err);
+    }.bind(this);
 
-  remoteRequest.onerror = function(err) {
-    console.log(err);
-    self.emit('error', err);
-  };
-
-  remoteRequest.send();
+    remoteRequest.send();
+  }.bind(this));
 };
 
 /**
 * Load all local files
 */
-HotPush.prototype._loadAllLocalFiles = function() {
+HotPush.prototype.loadAllLocalFiles = function() {
   if (this.localVersion) {
-    this._waitingToLoad = false;
     var files = this.localVersion.files;
     var self = this;
     var loadfile = function(filename) {
@@ -161,7 +127,7 @@ HotPush.prototype._loadAllLocalFiles = function() {
       }
     }
   } else {
-    this._waitingToLoad = true;
+    this._loadLocalVersion(this.loadAllLocalFiles);
   }
 };
 
@@ -178,11 +144,12 @@ HotPush.prototype.update = function() {
     });
 
     this._syncs[0].on('complete', function() {
+      self.remoteVersion.location = 'documents';
+      localStorage.setItem("hotpushes_localVersion", self.remoteVersion);
       self.emit('updateComplete');
     });
 
     this._syncs[0].on('error', function(e) {
-      console.log(e)
       self.emit('error', e);
     });
 
@@ -196,7 +163,7 @@ HotPush.prototype.update = function() {
 */
 
 HotPush.prototype._getLocalPath = function(filename) {
-  if (this.fetchFromBundle) {
+  if (this.localVersion.location === 'bundle') {
     return '/' + filename;
   } else {
     return this.options.documentsPath + filename;
@@ -207,29 +174,50 @@ HotPush.prototype._getLocalPath = function(filename) {
 * Fetch the local version of the version file
 */
 
-HotPush.prototype._loadLocalVersion = function() {
-  var head = document.getElementsByTagName("head")[0];
-  var time = new Date().getTime();
-  var domEl = document.createElement("script");
-  domEl.setAttribute("type", "text/javascript");
-  domEl.setAttribute("src", this._getLocalPath(this.options.versionJSONPFileName) + '?' + time);
-  domEl.onerror = function(err) {window.hotPushJSONP(null);}
-  head.appendChild(domEl);
+HotPush.prototype._loadLocalVersion = function(callback) {
+  this.localVersion = this.localVersion || localStorage.getItem("hotpushes_localVersion");
+
+  if (this.localVersion) {
+    return callback();
+  } else {
+    var self = this;
+
+    // fetch bundleVersion
+    var request = new XMLHttpRequest();
+    request.open('GET', this.options.versionFileName, true);
+
+    request.onload = function() {
+      if (request.status >= 200 && request.status < 400) {
+        // Success!
+        self.localVersion = JSON.parse(request.responseText);
+        self.localVersion.location = 'bundle';
+        localStorage.setItem("hotpushes_localVersion", self.localVersion);
+        callback();
+      } else {
+        console.log('nothing on the bundle');
+        self.emit('error', new Error('now version.json in the bundle'));
+      }
+    };
+
+    request.onerror = function(err) {
+      console.log(err);
+      self.emit('error', err);
+    };
+
+    request.send();
+  }
 };
 
 /**
 * Callback for async call to version files
 */
-HotPush.prototype._callback = function() {
-  this.countForCallback--;
-  if (this.countForCallback === 0) {
-    if (this.localVersion.timestamp !== this.remoteVersion.timestamp) {
-      console.log('Not the last version, ' + this.localVersion.timestamp +' !== ' + this.remoteVersion.timestamp);
-      this.emit('updateFound');
-    } else {
-      console.log('All good, last version running');
-      this.emit('noUpdateFound');
-    }
+HotPush.prototype._verifyVersions = function() {
+  if (this.localVersion.timestamp !== this.remoteVersion.timestamp) {
+    console.log('Not the last version, ' + this.localVersion.timestamp +' !== ' + this.remoteVersion.timestamp);
+    this.emit('updateFound');
+  } else {
+    console.log('All good, last version running');
+    this.emit('noUpdateFound');
   }
 };
 
