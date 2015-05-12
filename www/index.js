@@ -111,9 +111,9 @@ HotPush.prototype.check = function() {
 * Load all local files
 */
 HotPush.prototype.loadAllLocalFiles = function() {
+  var self = this;
   if (this.localVersion) {
     var files = this.localVersion.files;
-    var self = this;
     var loadfile = function(filename) {
       return function() {
         self._loadLocalFile(filename);
@@ -127,7 +127,7 @@ HotPush.prototype.loadAllLocalFiles = function() {
       }
     }
   } else {
-    this._loadLocalVersion(this.loadAllLocalFiles);
+    this._loadLocalVersion(self.loadAllLocalFiles);
   }
 };
 
