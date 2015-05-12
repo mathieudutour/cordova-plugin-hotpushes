@@ -121,7 +121,7 @@ HotPush.prototype.loadAllLocalFiles = function() {
     };
     for(var i = 0; i < files.length; i++) {
       if (files[i].position) {
-        setTimeout(loadfile(files[i].name), files[i].position * 100);
+        setTimeout(loadfile(files[i].name), files[i].position * 10);
       } else {
         loadfile(files[i].name)();
       }
