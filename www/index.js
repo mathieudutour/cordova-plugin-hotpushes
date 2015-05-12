@@ -127,7 +127,7 @@ HotPush.prototype.loadAllLocalFiles = function() {
       }
     }
   } else {
-    this._loadLocalVersion(self.loadAllLocalFiles);
+    this._loadLocalVersion(this.loadAllLocalFiles.bind(this));
   }
 };
 
