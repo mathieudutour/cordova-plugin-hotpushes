@@ -237,7 +237,7 @@ HotPush.prototype._verifyVersions = function() {
 };
 
 HotPush.prototype._loadLocalFile = function(filename) {
-  var head = document.getElementsByTagName("head")[0];
+/*  var head = document.getElementsByTagName("head")[0];
   var domEl;
   var time = new Date().getTime();
   if (filename.split('.css').length > 1) {
@@ -256,7 +256,9 @@ HotPush.prototype._loadLocalFile = function(filename) {
       this._hasloadedLocalFile();
     }.bind(this);
   }
-  head.appendChild(domEl);
+  head.appendChild(domEl);*/
+  console.log('file:');
+  console.log(filename);
 };
 
 /**
