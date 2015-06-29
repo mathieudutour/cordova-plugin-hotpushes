@@ -158,9 +158,12 @@ HotPush.prototype.update = function() {
       self.emit('progress', data);
     });
 
-    this._syncs[0].on('complete', function() {
+    this._syncs[0].on('complete', function(data) {
       self.remoteVersion.location = 'documents';
       localStorage.setItem("hotpushes_localVersion", JSON.stringify(self.remoteVersion));
+      console.log('downloaded file:');
+      console.log(data.localPath);
+      //this._extract(data.localPath);
       self.emit('updateComplete');
     });
 
@@ -172,6 +175,12 @@ HotPush.prototype.update = function() {
     this.emit('error', new Error('not implemented yet'));
   }
 };
+
+HotPush.prototype._extract = function(zipPath) {
+  var self = this;
+  ContentSync.unzip(zipPath)
+  self.emit('updateComplete');
+}
 
 /**
 * Get the path to a local file
