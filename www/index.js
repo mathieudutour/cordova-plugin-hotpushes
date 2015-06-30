@@ -152,19 +152,7 @@ HotPush.prototype._hasloadedLocalFile = function() {
 HotPush.prototype.update = function() {
   var self = this;
   if (this.options.type === 'replace') {
-    //this._syncs = [ContentSync.sync({ src: this.options.archiveURL, id: 'assets', headers: this.options.headers})];
-    this._syncs = [ContentSync.download( this.options.archiveURL, this.options.headers, function(response) {
-      console.log("ContentSync Download Callback");
-      if(response.progress) {
-        console.log(response);
-      }
-      if(response.archiveURL) {
-        var archiveURL = response.archiveURL;
-        Zip.unzip(archiveURL, "file://data/data/de.mobilexag.mip.cordovareact/android_asset/www", function(response) {
-          console.log(response);
-        })
-      }
-    })];
+    this._syncs = [ContentSync.sync({ src: this.options.archiveURL, id: 'assets', type: 'replace', copyCordovaAssets: true, headers: this.options.headers})];
 
     this._syncs[0].on('progress', function(data) {
       self.emit('progress', data);
@@ -175,9 +163,8 @@ HotPush.prototype.update = function() {
       localStorage.setItem("hotpushes_localVersion", JSON.stringify(self.remoteVersion));
       console.log('downloaded file:');
       console.log(data.localPath);
-      //ContentSync.unzip("/data/data/de.mobilexag.mip.cordovareact/files/files/assets", "/data/data/de.mobilexag.mip.cordovareact/android_asset/www")
       //this._extract(data.localPath);
-      self.emit('updateComplete');
+      self.emit('updateComplete', data.localPath);
     });
 
     this._syncs[0].on('error', function(e) {
@@ -188,12 +175,6 @@ HotPush.prototype.update = function() {
     this.emit('error', new Error('not implemented yet'));
   }
 };
-
-HotPush.prototype._extract = function(zipPath) {
-  var self = this;
-  ContentSync.unzip(zipPath)
-  self.emit('updateComplete');
-}
 
 /**
 * Get the path to a local file
