@@ -240,15 +240,15 @@ HotPush.prototype._verifyVersions = function() {
 };
 
 HotPush.prototype._loadLocalFile = function(filename) {
-/*  var head = document.getElementsByTagName("head")[0];
+  var body = document.getElementsByTagName("body")[0];
   var domEl;
   var time = new Date().getTime();
-  if (filename.split('.css').length > 1) {
+  /*if (filename.split('.css').length > 1) {
     domEl = document.createElement("link");
     domEl.setAttribute("rel", "stylesheet");
     domEl.setAttribute("type", "text/css");
     domEl.setAttribute("href", this._getLocalPath(filename) + '?' + time);
-  } else if (filename.split('.js').length > 1) {
+  } else */if (filename.split('.js').length > 1) {
     domEl = document.createElement('script');
     domEl.setAttribute("type", "text/javascript");
     domEl.setAttribute("src", this._getLocalPath(filename) + '?' + time);
@@ -259,7 +259,7 @@ HotPush.prototype._loadLocalFile = function(filename) {
       this._hasloadedLocalFile();
     }.bind(this);
   }
-  head.appendChild(domEl);*/
+  body.appendChild(domEl);
   console.log('file:');
   console.log(filename);
 };
