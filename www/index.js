@@ -153,9 +153,17 @@ HotPush.prototype.update = function() {
   var self = this;
   if (this.options.type === 'replace') {
     //this._syncs = [ContentSync.sync({ src: this.options.archiveURL, id: 'assets', headers: this.options.headers})];
-    this._syncs = [ContentSync.download( this.options.archiveURL, "file://data/data/de.mobilexag.mip.cordovareact/android_asset/www", function(message) {
+    this._syncs = [ContentSync.download( this.options.archiveURL, this.options.headers, function(response) {
       console.log("ContentSync Download Callback");
-      console.log(message);
+      if(response.progress) {
+        console.log(response);
+      }
+      if(response.archiveURL) {
+        var archiveURL = response.archiveURL;
+        Zip.unzip(archiveURL, "file://data/data/de.mobilexag.mip.cordovareact/android_asset/www", function(response) {
+          console.log(response);
+        })
+      }
     })];
 
     this._syncs[0].on('progress', function(data) {
