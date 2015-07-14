@@ -152,7 +152,7 @@ HotPush.prototype._hasloadedLocalFile = function() {
 HotPush.prototype.update = function() {
   var self = this;
   if (this.options.type === 'replace') {
-    this._syncs = [ContentSync.sync({ src: this.options.archiveURL, id: 'assets', type: 'replace', copyCordovaAssets: true, headers: this.options.headers})];
+    this._syncs = [ContentSync.sync({ src: this.options.archiveURL, id: 'assets', copyCordovaAssets: true, headers: this.options.headers})];
 
     this._syncs[0].on('progress', function(data) {
       self.emit('progress', data);
@@ -163,7 +163,6 @@ HotPush.prototype.update = function() {
       localStorage.setItem("hotpushes_localVersion", JSON.stringify(self.remoteVersion));
       console.log('downloaded file:');
       console.log(data.localPath);
-      //this._extract(data.localPath);
       self.emit('updateComplete', data.localPath);
     });
 
@@ -230,8 +229,10 @@ HotPush.prototype._loadLocalVersion = function(callback) {
 * Callback for async call to version files
 */
 HotPush.prototype._verifyVersions = function() {
-  if (this.localVersion.timestamp !== this.remoteVersion.timestamp) {
-    console.log('Not the last version, ' + this.localVersion.timestamp +' !== ' + this.remoteVersion.timestamp);
+/*  if (this.localVersion.timestamp !== this.remoteVersion.timestamp) {
+    console.log('Not the last version, ' + this.localVersion.timestamp +' !== ' + this.remoteVersion.timestamp);*/
+    if (this.localVersion.version !== this.remoteVersion.version) {
+      console.log('Not the last version, ' + this.localVersion.version +' !== ' + this.remoteVersion.version);
     this.emit('updateFound');
   } else {
     console.log('All good, last version running');
@@ -240,15 +241,15 @@ HotPush.prototype._verifyVersions = function() {
 };
 
 HotPush.prototype._loadLocalFile = function(filename) {
-  var body = document.getElementsByTagName("body")[0];
+var head = document.getElementsByTagName("head")[0];
   var domEl;
   var time = new Date().getTime();
-  /*if (filename.split('.css').length > 1) {
+  if (filename.split('.css').length > 1) {
     domEl = document.createElement("link");
     domEl.setAttribute("rel", "stylesheet");
     domEl.setAttribute("type", "text/css");
     domEl.setAttribute("href", this._getLocalPath(filename) + '?' + time);
-  } else */if (filename.split('.js').length > 1) {
+  } else if (filename.split('.js').length > 1) {
     domEl = document.createElement('script');
     domEl.setAttribute("type", "text/javascript");
     domEl.setAttribute("src", this._getLocalPath(filename) + '?' + time);
@@ -259,7 +260,7 @@ HotPush.prototype._loadLocalFile = function(filename) {
       this._hasloadedLocalFile();
     }.bind(this);
   }
-  body.appendChild(domEl);
+  head.appendChild(domEl);
   console.log('file:');
   console.log(filename);
 };
