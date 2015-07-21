@@ -161,8 +161,6 @@ HotPush.prototype.update = function() {
     this._syncs[0].on('complete', function(data) {
       self.remoteVersion.location = 'documents';
       localStorage.setItem("hotpushes_localVersion", JSON.stringify(self.remoteVersion));
-      console.log('downloaded file:');
-      console.log(data.localPath);
       self.emit('updateComplete', data.localPath);
     });
 
@@ -241,7 +239,7 @@ HotPush.prototype._verifyVersions = function() {
 };
 
 HotPush.prototype._loadLocalFile = function(filename) {
-var head = document.getElementsByTagName("head")[0];
+  var head = document.getElementsByTagName("head")[0];
   var domEl;
   var time = new Date().getTime();
   if (filename.split('.css').length > 1) {
@@ -261,8 +259,6 @@ var head = document.getElementsByTagName("head")[0];
     }.bind(this);
   }
   head.appendChild(domEl);
-  console.log('file:');
-  console.log(filename);
 };
 
 /**
