@@ -4,7 +4,7 @@
  * Module dependencies.
  */
 
-var ContentSync = cordova.require('com.adobe.phonegap.contentsync.ContentSync');
+var ContentSync = cordova.require('phonegap-plugin-contentsync.ContentSync');
 
 /**
  * HotPush constructor.
@@ -66,6 +66,13 @@ var HotPush = function(options) {
 
   if (typeof options.documentsPath === 'undefined') {
     options.documentsPath = 'cdvfile://localhost/persistent/';
+  }
+
+  // optional version type for update checks
+  // default check method uses timestamp
+  // 'version' option will use the version number in your package.json
+  if (typeof options.versionType === 'undefined') {
+    options.versionType = null;
   }
 
   // store the options to this object instance
@@ -152,16 +159,16 @@ HotPush.prototype._hasloadedLocalFile = function() {
 HotPush.prototype.update = function() {
   var self = this;
   if (this.options.type === 'replace') {
-    this._syncs = [ContentSync.sync({ src: this.options.archiveURL, id: 'assets', headers: this.options.headers})];
+    this._syncs = [ContentSync.sync({ src: this.options.archiveURL, id: 'assets', copyCordovaAssets: true, headers: this.options.headers})];
 
     this._syncs[0].on('progress', function(data) {
       self.emit('progress', data);
     });
 
-    this._syncs[0].on('complete', function() {
+    this._syncs[0].on('complete', function(data) {
       self.remoteVersion.location = 'documents';
       localStorage.setItem("hotpushes_localVersion", JSON.stringify(self.remoteVersion));
-      self.emit('updateComplete');
+      self.emit('updateComplete', data.localPath);
     });
 
     this._syncs[0].on('error', function(e) {
@@ -227,13 +234,23 @@ HotPush.prototype._loadLocalVersion = function(callback) {
 * Callback for async call to version files
 */
 HotPush.prototype._verifyVersions = function() {
-  if (this.localVersion.timestamp !== this.remoteVersion.timestamp) {
-    console.log('Not the last version, ' + this.localVersion.timestamp +' !== ' + this.remoteVersion.timestamp);
-    this.emit('updateFound');
+  if(this.options.versionType === 'package.json') {
+    if (this.localVersion.version !== this.remoteVersion.version) {
+      console.log('Not the last version, ' + this.localVersion.version +' !== ' + this.remoteVersion.version);
+      this.emit('updateFound');
+    } else {
+      console.log('All good, last version running');
+      this.emit('noUpdateFound');
+    }
   } else {
-    console.log('All good, last version running');
-    this.emit('noUpdateFound');
-  }
+    if (this.localVersion.timestamp !== this.remoteVersion.timestamp) {
+      console.log('Not the last version, ' + this.localVersion.timestamp +' !== ' + this.remoteVersion.timestamp);
+      this.emit('updateFound');
+    } else {
+      console.log('All good, last version running');
+      this.emit('noUpdateFound');
+    }
+  } 
 };
 
 HotPush.prototype._loadLocalFile = function(filename) {
