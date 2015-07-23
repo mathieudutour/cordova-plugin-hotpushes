@@ -6,18 +6,29 @@
 
 var ContentSync = cordova.require('phonegap-plugin-contentsync.ContentSync');
 
+var HOTPUSH_TYPE = {
+    'MERGE': 'merge',
+    'REPLACE': 'replace'
+};
+var HOTPUSH_CHECK_TYPE = {
+    'VERSION': 'version',
+    'TIMESTAMP': 'timestamp'
+};
 /**
  * HotPush constructor.
  *
  * @param {Object} options to initiate a new content synchronization.
  *   @param {String} src is a URL to hot push endpoint
  *   @param {String} versionFileName is the name of the json file containing the version information
- *   @param {Object} type defines the hot push strategy applied to the content.
- *     @param {String} replace completely removes existing content then copies new content from a zip file.
- *     @param {String} merge   download and replace only content which has changed
+ *   @param {String} type defines the hot push strategy applied to the content.
+ *        HOTPUSH_TYPE.REPLACE completely removes existing content then copies new content from a zip file.
+ *        HOTPUSH_TYPE.MERGE download and replace only content which has changed
  *   @param {String} archiveURL is the url of the zip containing the files to hot push (if type === replace)
  *   @param {Object} headers are used to set the headers for when we send a request to the src URL
  *   @param {String} documentsPath is the path to the Documents folder
+ *   @param {String} checkType defines the type of check to do to see if we have the last version
+ *        HOTPUSH_CHECK_TYPE.VERSION
+ *        HOTPUSH_CHECK_TYPE.TIMESTAMP
  * @return {HotPush} instance that can be monitored and cancelled.
  */
 
@@ -48,12 +59,12 @@ var HotPush = function(options) {
 
   // define synchronization strategy
   //
-  //     replace: This is the normal behavior. completely removes existing
+  //     HOTPUSH_TYPE.REPLACE: This is the normal behavior. completely removes existing
   //              content then copies new content from a zip file.
-  //     merge:   Download and replace only content which has changed
+  //     HOTPUSH_TYPE.MERGE:   Download and replace only content which has changed
   //
   if (typeof options.type === 'undefined') {
-    options.type = 'replace';
+    options.type = HOTPUSH_TYPE.REPLACE;
   }
 
   if (options.type === 'replace' && typeof options.archiveURL === 'undefined') {
@@ -71,8 +82,8 @@ var HotPush = function(options) {
   // optional version type for update checks
   // default check method uses timestamp
   // 'version' option will use the version number in your package.json
-  if (typeof options.versionType === 'undefined') {
-    options.versionType = null;
+  if (typeof options.checkType === 'undefined') {
+    options.checkType = HOTPUSH_CHECK_TYPE.TIMESTAMP;
   }
 
   // store the options to this object instance
@@ -158,7 +169,7 @@ HotPush.prototype._hasloadedLocalFile = function() {
 */
 HotPush.prototype.update = function() {
   var self = this;
-  if (this.options.type === 'replace') {
+  if (this.options.type === HOTPUSH_TYPE.REPLACE) {
     this._syncs = [ContentSync.sync({ src: this.options.archiveURL, id: 'assets', copyCordovaAssets: true, headers: this.options.headers})];
 
     this._syncs[0].on('progress', function(data) {
@@ -175,8 +186,10 @@ HotPush.prototype.update = function() {
       self.emit('error', e);
     });
 
-  } else if (this.options.type === 'merge') {
+  } else if (this.options.type === HOTPUSH_TYPE.MERGE) {
     this.emit('error', new Error('not implemented yet'));
+  } else {
+    this.emit('error', new Error('unknown hotpush type'));
   }
 };
 
@@ -234,23 +247,21 @@ HotPush.prototype._loadLocalVersion = function(callback) {
 * Callback for async call to version files
 */
 HotPush.prototype._verifyVersions = function() {
-  if(this.options.versionType === 'package.json') {
-    if (this.localVersion.version !== this.remoteVersion.version) {
-      console.log('Not the last version, ' + this.localVersion.version +' !== ' + this.remoteVersion.version);
-      this.emit('updateFound');
-    } else {
-      console.log('All good, last version running');
-      this.emit('noUpdateFound');
-    }
+  if (this.options.checkType === HOTPUSH_CHECK_TYPE.VERSION &&
+      this.localVersion.version !== this.remoteVersion.version) {
+    console.log('Not the last version, ' + this.localVersion.version +' !== ' + this.remoteVersion.version);
+    this.emit('updateFound');
+  } else if (this.options.checkType === HOTPUSH_CHECK_TYPE.TIMESTAMP &&
+      this.localVersion.timestamp !== this.remoteVersion.timestamp) {
+    console.log('Not the last version, ' + this.localVersion.timestamp +' !== ' + this.remoteVersion.timestamp);
+    this.emit('updateFound');
+  } else if (this.options.checkType !== HOTPUSH_CHECK_TYPE.TIMESTAMP &&
+      this.options.checkType !== HOTPUSH_CHECK_TYPE.VERSION) {
+    this.emit('error', new Error('unknown hotpush check type'));
   } else {
-    if (this.localVersion.timestamp !== this.remoteVersion.timestamp) {
-      console.log('Not the last version, ' + this.localVersion.timestamp +' !== ' + this.remoteVersion.timestamp);
-      this.emit('updateFound');
-    } else {
-      console.log('All good, last version running');
-      this.emit('noUpdateFound');
-    }
-  } 
+    console.log('All good, last version running');
+    this.emit('noUpdateFound');
+  }
 };
 
 HotPush.prototype._loadLocalFile = function(filename) {
@@ -373,5 +384,8 @@ module.exports = {
       1: 'DOWNLOADING',
       2: 'EXTRACTING',
       3: 'COMPLETE'
-  }
+  },
+
+  HOTPUSH_TYPE: HOTPUSH_TYPE,
+  HOTPUSH_CHECK_TYPE: HOTPUSH_CHECK_TYPE
 };
