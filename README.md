@@ -33,6 +33,7 @@ Parameter | Description
 `options.headers` | `Object` _(Optional)_ Set of headers to use when requesting the remote content from `options.src`.
 `options.archiveURL` | `String` _(Mandatory if `options.type === 'replace'`)_ URL of the zip containing the files to hot push.
 `options.documentsPath` | `Object` _(Optional)_ Path to the Documents folder (useful for [WKWebView](https://github.com/etiennea/WKWebView))
+`options.versionType` | `String` _(Optional)_ Set to 'package.json' if you want to use the version number in your version.json instead of timestamp
 
 ### Returns
 

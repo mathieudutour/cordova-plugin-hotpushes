@@ -4,7 +4,7 @@
  * Module dependencies.
  */
 
-var ContentSync = cordova.require('com.adobe.phonegap.contentsync.ContentSync');
+var ContentSync = cordova.require('phonegap-plugin-contentsync.ContentSync');
 
 /**
  * HotPush constructor.
@@ -66,6 +66,13 @@ var HotPush = function(options) {
 
   if (typeof options.documentsPath === 'undefined') {
     options.documentsPath = 'cdvfile://localhost/persistent/';
+  }
+
+  // optional version type for update checks
+  // default check method uses timestamp
+  // 'version' option will use the version number in your package.json
+  if (typeof options.versionType === 'undefined') {
+    options.versionType = null;
   }
 
   // store the options to this object instance
@@ -227,15 +234,23 @@ HotPush.prototype._loadLocalVersion = function(callback) {
 * Callback for async call to version files
 */
 HotPush.prototype._verifyVersions = function() {
-/*  if (this.localVersion.timestamp !== this.remoteVersion.timestamp) {
-    console.log('Not the last version, ' + this.localVersion.timestamp +' !== ' + this.remoteVersion.timestamp);*/
+  if(this.options.versionType === 'package.json') {
     if (this.localVersion.version !== this.remoteVersion.version) {
       console.log('Not the last version, ' + this.localVersion.version +' !== ' + this.remoteVersion.version);
-    this.emit('updateFound');
+      this.emit('updateFound');
+    } else {
+      console.log('All good, last version running');
+      this.emit('noUpdateFound');
+    }
   } else {
-    console.log('All good, last version running');
-    this.emit('noUpdateFound');
-  }
+    if (this.localVersion.timestamp !== this.remoteVersion.timestamp) {
+      console.log('Not the last version, ' + this.localVersion.timestamp +' !== ' + this.remoteVersion.timestamp);
+      this.emit('updateFound');
+    } else {
+      console.log('All good, last version running');
+      this.emit('noUpdateFound');
+    }
+  } 
 };
 
 HotPush.prototype._loadLocalFile = function(filename) {
