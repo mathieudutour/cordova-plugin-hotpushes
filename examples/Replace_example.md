@@ -34,7 +34,7 @@ In the `bundle` of the app, there should be 1 file + the files listed in `versio
 ### Example
 ```
 http://myserver/hot/
-    	version.json
+	version.json
 	assets.zip
 ```
 
