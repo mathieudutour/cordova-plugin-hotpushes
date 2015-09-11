@@ -195,3 +195,21 @@ Integer | Description
 `1`     | `DOWNLOADING`
 `2`     | `EXTRACTING`
 `3`     | `COMPLETE`
+
+## HotPush.HOTPUSH_TYPE
+
+An enumeration that describes the type of hotpush to perform.
+
+String    | Description
+-------   | -----------
+`merge`   | `MERGE`
+`replace` | `REPLACE`
+
+## HotPush.HOTPUSH_CHECK_TYPE
+
+An enumeration that describes the field to look at in the `version.json` file.
+
+String      | Description
+-------     | -----------
+`version`   | `VERSION`
+`timestamp` | `TIMESTAMP`
