@@ -33,14 +33,9 @@ In the `bundle` of the app, there should be 1 file + the files listed in `versio
 
 ### Example
 ```
-www/
-    version.json
-	libs.js
-	app.js
-	
-	styles/
-		app.css
-		libs.css
+http://myserver/hot/
+    	version.json
+	assets.zip
 ```
 
 ## version.json
