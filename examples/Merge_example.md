@@ -1,4 +1,4 @@
-# `replace` Example
+# `merge` Example
 
 ```javascript
 var hotpushes = HotPush.sync({
