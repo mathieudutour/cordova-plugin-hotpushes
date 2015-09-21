@@ -148,7 +148,7 @@ HotPush.prototype.loadWaitingLocalFiles = function() {
 */
 HotPush.prototype.loadAllLocalFiles = function() {
   if (this.localVersion) {
-    this._currentPosition = -2;
+    this._currentPosition = 0;
     this._loadLocalFilesAtCurrentPosition();
   } else {
     this._loadLocalVersion(this.loadAllLocalFiles.bind(this));
