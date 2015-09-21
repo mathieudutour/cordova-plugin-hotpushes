@@ -222,7 +222,7 @@ HotPush.prototype._loadLocalVersion = function(callback) {
     request.open('GET', this.options.versionFileName, true);
 
     request.onload = function() {
-      if (request.status >= 200 && request.status < 400) {
+      if (request.status === 0 || request.status >= 200 && request.status < 400) {
         // Success!
         self.localVersion = JSON.parse(request.responseText);
         self.localVersion.location = 'bundle';
@@ -230,7 +230,7 @@ HotPush.prototype._loadLocalVersion = function(callback) {
         callback();
       } else {
         console.log('nothing on the bundle');
-        self.emit('error', new Error('now version.json in the bundle'));
+        self.emit('error', new Error('no version.json in the bundle'));
       }
     };
 
