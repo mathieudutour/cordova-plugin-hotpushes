@@ -32,7 +32,7 @@ Parameter | Description
 `options.type` | `String` _(Optional)_ Defines the hot push strategy applied to the content.<br/>The type `HOTPUSH_TYPE.REPLACE` is the default behaviour that completely removes existing content then copies new content from a zip file.<br/> The type `HOTPUSH_TYPE.MERGE` will download and replace only content which has changed.
 `options.headers` | `Object` _(Optional)_ Set of headers to use when requesting the remote content from `options.src`.
 `options.archiveURL` | `String` _(Mandatory if `options.type === Hotpush.HOTPUSH_TYPE.REPLACE`)_ URL of the zip containing the files to hot push.
-`options.documentsPath` | `Object` _(Optional)_ Path to the Documents folder (useful for [WKWebView](https://github.com/etiennea/WKWebView))
+`options.documentsPath` | `Object` _(Optional)_ Path to the Documents folder (useful for [WKWebView](https://github.com/Telerik-Verified-Plugins/WKWebView))
 `options.checkType` | `String` _(Optional)_ Set to `Hotpush.HOTPUSH_CHECK_TYPE.VERSION` if you want to use the version number in your version.json instead of timestamp
 
 ### Returns
@@ -50,9 +50,17 @@ var hotpushes = HotPush.sync({
 });
 ```
 
+## hotpushes.loadWaitingLocalFiles()
+
+Load the local files at position `-1` (see version.json).
+
+Parameter | Description
+--------- | ------------
+`no parameters` |
+
 ## hotpushes.loadAllLocalFiles()
 
-Load the local files.
+Load the local files at position >= 0.
 
 Parameter | Description
 --------- | ------------

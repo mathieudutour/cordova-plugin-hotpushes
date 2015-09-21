@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="cordova-plugin-hotpushes" version="0.3.1">
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="cordova-plugin-hotpushes" version="0.4.0">
 
   <name>Hot Pushes</name>
 
@@ -15,7 +15,7 @@
 
   <issue>https://github.com/mathieudutour/cordova-plugin-hotpushes/issues</issue>
 
-  <dependency id="phonegap-plugin-contentsync" url="https://github.com/phonegap/phonegap-plugin-contentsync" tag="1.1.6" />
+  <dependency id="phonegap-plugin-contentsync" url="https://github.com/phonegap/phonegap-plugin-contentsync" tag="1.1.12" />
 
   <js-module src="www/index.js" name="HotPush">
     <clobbers target="window.HotPush" />

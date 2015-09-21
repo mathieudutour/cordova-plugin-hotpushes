@@ -126,11 +126,29 @@ HotPush.prototype.check = function() {
 };
 
 /**
+* Load waiting local files
+*/
+HotPush.prototype.loadWaitingLocalFiles = function() {
+  if (this.localVersion) {
+    this._currentPosition = -1;
+    var files = this.localVersion.files;
+    this._nbScriptToLoadForTheCurrentPosition = Infinity;
+    for(var i = 0; i < files.length; i++) {
+      if (files[i].position === this._currentPosition) {
+        this._loadLocalFile(files[i].name);
+      }
+    }
+  } else {
+    this._loadLocalVersion(this.loadAllLocalFiles.bind(this));
+  }
+};
+
+/**
 * Load all local files
 */
 HotPush.prototype.loadAllLocalFiles = function() {
   if (this.localVersion) {
-    this._currentPosition = 0;
+    this._currentPosition = -2;
     this._loadLocalFilesAtCurrentPosition();
   } else {
     this._loadLocalVersion(this.loadAllLocalFiles.bind(this));
@@ -179,6 +197,7 @@ HotPush.prototype.update = function() {
     this._syncs[0].on('complete', function(data) {
       self.remoteVersion.location = 'documents';
       localStorage.setItem("hotpushes_localVersion", JSON.stringify(self.remoteVersion));
+      localStorage.setItem("hotpushes_lastUpdate", new Date().toString());
       self.emit('updateComplete', data.localPath);
     });
 
