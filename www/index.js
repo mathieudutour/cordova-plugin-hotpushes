@@ -100,46 +100,57 @@ var HotPush = function(options) {
 */
 HotPush.prototype.check = function() {
   // fetch localVersion
-  this._loadLocalVersion(function() {
-    // fetch remoteVersion
-    var remoteRequest = new XMLHttpRequest();
-    remoteRequest.open('GET', this.options.src + this.options.versionFileName, true);
+  try {
+    this._loadLocalVersion(function() {
+      // fetch remoteVersion
+      var remoteRequest = new XMLHttpRequest();
+      remoteRequest.open('GET', this.options.src + this.options.versionFileName, true);
 
-    remoteRequest.onload = function() {
-      if (remoteRequest.status >= 200 && remoteRequest.status < 400) {
-        // Success!
-        this.remoteVersion = JSON.parse(remoteRequest.responseText);
-        this._verifyVersions();
-      } else {
-        console.log('nothing on the remote');
-        this.emit('noUpdateFound');
-      }
-    }.bind(this);
+      remoteRequest.onload = function() {
+        if (remoteRequest.status >= 200 && remoteRequest.status < 400) {
+          // Success!
+          this.remoteVersion = JSON.parse(remoteRequest.responseText);
+          this._verifyVersions();
+        } else {
+          console.log('nothing on the remote');
+          this.emit('noUpdateFound');
+        }
+      }.bind(this);
 
-    remoteRequest.onerror = function(err) {
-      console.log(err);
-      this.emit('error', err);
-    }.bind(this);
+      remoteRequest.onerror = function(err) {
+        console.log(err);
+        this.emit('error', err);
+      }.bind(this);
 
-    remoteRequest.send();
-  }.bind(this));
+      remoteRequest.send();
+    }.bind(this));
+  } catch (err) {
+    console.log(err);
+    this.emit('error', err);
+  }
+
 };
 
 /**
 * Load waiting local files
 */
 HotPush.prototype.loadWaitingLocalFiles = function() {
-  if (this.localVersion) {
-    this._currentPosition = -1;
-    var files = this.localVersion.files;
-    this._nbScriptToLoadForTheCurrentPosition = Infinity;
-    for(var i = 0; i < files.length; i++) {
-      if (files[i].position === this._currentPosition) {
-        this._loadLocalFile(files[i].name);
+  try {
+    if (this.localVersion) {
+      this._currentPosition = -1;
+      var files = this.localVersion.files;
+      this._nbScriptToLoadForTheCurrentPosition = Infinity;
+      for(var i = 0; i < files.length; i++) {
+        if (files[i].position === this._currentPosition) {
+          this._loadLocalFile(files[i].name);
+        }
       }
+    } else {
+      this._loadLocalVersion(this.loadAllLocalFiles.bind(this));
     }
-  } else {
-    this._loadLocalVersion(this.loadAllLocalFiles.bind(this));
+  } catch (err) {
+    console.log(err);
+    this.emit('error', err);
   }
 };
 
@@ -147,11 +158,16 @@ HotPush.prototype.loadWaitingLocalFiles = function() {
 * Load all local files
 */
 HotPush.prototype.loadAllLocalFiles = function() {
-  if (this.localVersion) {
-    this._currentPosition = 0;
-    this._loadLocalFilesAtCurrentPosition();
-  } else {
-    this._loadLocalVersion(this.loadAllLocalFiles.bind(this));
+  try {
+    if (this.localVersion) {
+      this._currentPosition = 0;
+      this._loadLocalFilesAtCurrentPosition();
+    } else {
+      this._loadLocalVersion(this.loadAllLocalFiles.bind(this));
+    }
+  } catch (err) {
+    console.log(err);
+    this.emit('error', err);
   }
 };
 
