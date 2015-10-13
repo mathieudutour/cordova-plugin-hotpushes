@@ -7,12 +7,25 @@
 var ContentSync = cordova.require('phonegap-plugin-contentsync.ContentSync');
 
 var HOTPUSH_TYPE = {
-    'MERGE': 'merge',
-    'REPLACE': 'replace'
+  'MERGE': 'merge',
+  'REPLACE': 'replace'
 };
 var HOTPUSH_CHECK_TYPE = {
-    'VERSION': 'version',
-    'TIMESTAMP': 'timestamp'
+  'VERSION': 'version',
+  'TIMESTAMP': 'timestamp'
+};
+
+var PROGRESS_STATE: {
+  0: 'STOPPED',
+  1: 'DOWNLOADING',
+  2: 'EXTRACTING',
+  3: 'COMPLETE'
+};
+
+var ERROR_STATE = {
+  1: 'INVALID_URL_ERR',
+  2: 'CONNECTION_ERR',
+  3: 'UNZIP_ERR'
 };
 
 /**
@@ -228,7 +241,7 @@ HotPush.prototype.update = function() {
     this.debug('Start the update...');
 
     this._syncs[0].on('progress', function(data) {
-      this.debug('progress: ' + data);
+      this.debug('progress: ' + PROGRESS_STATE(data.status) + ' - ' data.progress);
       this.emit('progress', data);
     }.bind(this));
 
@@ -242,7 +255,7 @@ HotPush.prototype.update = function() {
     }.bind(this));
 
     this._syncs[0].on('error', function(err) {
-      this.debug(err, 'error');
+      this.debug(ERROR_STATE[err], 'error');
       this.emit('error', err);
     }.bind(this));
 
@@ -435,20 +448,8 @@ module.exports = {
 
   HotPush: HotPush,
 
-  /**
-   * PROGRESS_STATE enumeration.
-   *
-   * Maps to the `progress` event's `status` object.
-   * The plugin user can customize the enumeration's mapped string
-   * to a value that's appropriate for their app.
-   */
-
-  PROGRESS_STATE: {
-      0: 'STOPPED',
-      1: 'DOWNLOADING',
-      2: 'EXTRACTING',
-      3: 'COMPLETE'
-  },
+  PROGRESS_STATE: PROGRESS_STATE,
+  ERROR_STATE: ERROR_STATE,
 
   HOTPUSH_TYPE: HOTPUSH_TYPE,
   HOTPUSH_CHECK_TYPE: HOTPUSH_CHECK_TYPE
