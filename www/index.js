@@ -241,7 +241,7 @@ HotPush.prototype.update = function() {
     this.debug('Start the update...');
 
     this._syncs[0].on('progress', function(data) {
-      this.debug('progress: ' + PROGRESS_STATE(data.status) + ' - ' data.progress);
+      this.debug('progress: ' + PROGRESS_STATE(data.status) + ' - ' + data.progress);
       this.emit('progress', data);
     }.bind(this));
 
