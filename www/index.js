@@ -14,6 +14,7 @@ var HOTPUSH_CHECK_TYPE = {
     'VERSION': 'version',
     'TIMESTAMP': 'timestamp'
 };
+
 /**
  * HotPush constructor.
  *
@@ -96,12 +97,24 @@ var HotPush = function(options) {
 };
 
 /**
+* Load all local files
+*/
+HotPush.prototype.debug = function(s, type) {
+  if (this.options.debug) {
+    if (!type) { type = 'log'; }
+    console[type]('[hotpushes] ', s);
+  }
+};
+
+/**
 * Check if there is a new version available
 */
 HotPush.prototype.check = function() {
+  this.debug('fetch localVersion');
   // fetch localVersion
   try {
     this._loadLocalVersion(function() {
+      this.debug('fetch remoteVersion');
       // fetch remoteVersion
       var remoteRequest = new XMLHttpRequest();
       remoteRequest.open('GET', this.options.src + this.options.versionFileName, true);
@@ -110,22 +123,23 @@ HotPush.prototype.check = function() {
         if (remoteRequest.status >= 200 && remoteRequest.status < 400) {
           // Success!
           this.remoteVersion = JSON.parse(remoteRequest.responseText);
+          this.debug('found remote version - ' + JSON.stringify(this.remoteVersion));
           this._verifyVersions();
         } else {
-          console.log('nothing on the remote');
+          this.debug('nothing on the remote', 'warn');
           this.emit('noUpdateFound');
         }
       }.bind(this);
 
       remoteRequest.onerror = function(err) {
-        console.log(err);
+        this.debug(err, 'error');
         this.emit('error', err);
       }.bind(this);
 
       remoteRequest.send();
     }.bind(this));
   } catch (err) {
-    console.log(err);
+    this.debug(err, 'error');
     this.emit('error', err);
   }
 
@@ -137,6 +151,7 @@ HotPush.prototype.check = function() {
 HotPush.prototype.loadWaitingLocalFiles = function() {
   try {
     if (this.localVersion) {
+      this.debug('load waiting local files');
       this._currentPosition = -1;
       var files = this.localVersion.files;
       this._nbScriptToLoadForTheCurrentPosition = Infinity;
@@ -146,10 +161,11 @@ HotPush.prototype.loadWaitingLocalFiles = function() {
         }
       }
     } else {
-      this._loadLocalVersion(this.loadAllLocalFiles.bind(this));
+      this.debug('fetch localVersion');
+      this._loadLocalVersion(this.loadWaitingLocalFiles.bind(this));
     }
   } catch (err) {
-    console.log(err);
+    this.debug(err, 'error');
     this.emit('error', err);
   }
 };
@@ -160,19 +176,21 @@ HotPush.prototype.loadWaitingLocalFiles = function() {
 HotPush.prototype.loadAllLocalFiles = function() {
   try {
     if (this.localVersion) {
+      this.debug('load all local files');
       this._currentPosition = 0;
       this._loadLocalFilesAtCurrentPosition();
     } else {
+      this.debug('fetch localVersion');
       this._loadLocalVersion(this.loadAllLocalFiles.bind(this));
     }
   } catch (err) {
-    console.log(err);
+    this.debug(err, 'error');
     this.emit('error', err);
   }
 };
 
 /**
-* Load local files of position
+* Load local files at position
 */
 HotPush.prototype._loadLocalFilesAtCurrentPosition = function() {
   var files = this.localVersion.files;
@@ -180,6 +198,7 @@ HotPush.prototype._loadLocalFilesAtCurrentPosition = function() {
     return a + file.position === this._currentPosition &&
       file.name.split('.js').length > 1 ? 1 : 0;
   }.bind(this), 0);
+  this.debug('load local files at position ' + this._currentPosition + '(' + this._nbScriptToLoadForTheCurrentPosition +') ...');
   for(var i = 0; i < files.length; i++) {
     if (files[i].position === this._currentPosition) {
       this._loadLocalFile(files[i].name);
@@ -188,10 +207,11 @@ HotPush.prototype._loadLocalFilesAtCurrentPosition = function() {
 };
 
 /**
-* Load local files of position
+* Called when a file has finished loading
 */
 HotPush.prototype._hasloadedLocalFile = function() {
   this._nbScriptToLoadForTheCurrentPosition--;
+  this.debug('finish loading a file at position ' + this._currentPosition + '(' + this._nbScriptToLoadForTheCurrentPosition +' left)');
   if (!this._nbScriptToLoadForTheCurrentPosition) {
     this._currentPosition++;
     this._loadLocalFilesAtCurrentPosition();
@@ -199,31 +219,38 @@ HotPush.prototype._hasloadedLocalFile = function() {
 };
 
 /**
-* Fetch the local version of the version file
+* Start the update
 */
 HotPush.prototype.update = function() {
-  var self = this;
   if (this.options.type === HOTPUSH_TYPE.REPLACE) {
     this._syncs = [ContentSync.sync({ src: this.options.archiveURL, id: 'assets', copyCordovaAssets: true, headers: this.options.headers})];
 
+    this.debug('Start the update...');
+
     this._syncs[0].on('progress', function(data) {
-      self.emit('progress', data);
-    });
+      this.debug('progress: ' + data);
+      this.emit('progress', data);
+    }.bind(this));
 
     this._syncs[0].on('complete', function(data) {
-      self.remoteVersion.location = 'documents';
-      localStorage.setItem("hotpushes_localVersion", JSON.stringify(self.remoteVersion));
+      this.remoteVersion.location = 'documents';
+      localStorage.setItem("hotpushes_localVersion", JSON.stringify(this.remoteVersion));
       localStorage.setItem("hotpushes_lastUpdate", new Date().toString());
-      self.emit('updateComplete', data.localPath);
-    });
+      this.debug('update complete');
+      this.debug('new localVersion - ' + JSON.stringify(this.remoteVersion));
+      this.emit('updateComplete', data.localPath);
+    }.bind(this));
 
-    this._syncs[0].on('error', function(e) {
-      self.emit('error', e);
-    });
+    this._syncs[0].on('error', function(err) {
+      this.debug(err, 'error');
+      this.emit('error', err);
+    }.bind(this));
 
   } else if (this.options.type === HOTPUSH_TYPE.MERGE) {
+    this.debug(new Error('not implemented yet'), 'error');
     this.emit('error', new Error('not implemented yet'));
   } else {
+    this.debug(new Error('unknown hotpush type'), 'error');
     this.emit('error', new Error('unknown hotpush type'));
   }
 };
@@ -231,7 +258,6 @@ HotPush.prototype.update = function() {
 /**
 * Get the path to a local file
 */
-
 HotPush.prototype._getLocalPath = function(filename) {
   if (this.localVersion.location === 'bundle') {
     return '/' + filename;
@@ -243,14 +269,14 @@ HotPush.prototype._getLocalPath = function(filename) {
 /**
 * Fetch the local version of the version file
 */
-
 HotPush.prototype._loadLocalVersion = function(callback) {
   this.localVersion = this.localVersion || JSON.parse(localStorage.getItem("hotpushes_localVersion"));
 
   if (this.localVersion) {
+    this.debug('already have localVersion - ' + JSON.stringify(this.localVersion));
     return callback();
   } else {
-    var self = this;
+    this.debug('fetch localVersion from bundle...');
 
     // fetch bundleVersion
     var request = new XMLHttpRequest();
@@ -259,20 +285,21 @@ HotPush.prototype._loadLocalVersion = function(callback) {
     request.onload = function() {
       if (request.status === 0 || request.status >= 200 && request.status < 400) {
         // Success!
-        self.localVersion = JSON.parse(request.responseText);
-        self.localVersion.location = 'bundle';
-        localStorage.setItem("hotpushes_localVersion", JSON.stringify(self.localVersion));
+        this.localVersion = JSON.parse(request.responseText);
+        this.localVersion.location = 'bundle';
+        localStorage.setItem("hotpushes_localVersion", JSON.stringify(this.localVersion));
+        this.debug('found the localVersion - ' + JSON.stringify(this.localVersion));
         callback();
       } else {
-        console.log('nothing on the bundle');
-        self.emit('error', new Error('no version.json in the bundle'));
+        this.debug('nothing on the bundle', 'error');
+        this.emit('error', new Error('no version.json in the bundle'));
       }
-    };
+    }.bind(this);
 
     request.onerror = function(err) {
-      console.log(err);
-      self.emit('error', err);
-    };
+      this.debug(err, 'error');
+      this.emit('error', err);
+    }.bind(this);
 
     request.send();
   }
@@ -284,22 +311,24 @@ HotPush.prototype._loadLocalVersion = function(callback) {
 HotPush.prototype._verifyVersions = function() {
   if (this.options.checkType === HOTPUSH_CHECK_TYPE.VERSION &&
       this.localVersion.version !== this.remoteVersion.version) {
-    console.log('Not the last version, ' + this.localVersion.version +' !== ' + this.remoteVersion.version);
+    this.debug('Not the last version, ' + this.localVersion.version +' !== ' + this.remoteVersion.version);
     this.emit('updateFound');
   } else if (this.options.checkType === HOTPUSH_CHECK_TYPE.TIMESTAMP &&
       this.localVersion.timestamp !== this.remoteVersion.timestamp) {
-    console.log('Not the last version, ' + this.localVersion.timestamp +' !== ' + this.remoteVersion.timestamp);
+    this.debug('Not the last version, ' + this.localVersion.timestamp +' !== ' + this.remoteVersion.timestamp);
     this.emit('updateFound');
   } else if (this.options.checkType !== HOTPUSH_CHECK_TYPE.TIMESTAMP &&
       this.options.checkType !== HOTPUSH_CHECK_TYPE.VERSION) {
+    this.debug('unknown hotpush check type', 'error');
     this.emit('error', new Error('unknown hotpush check type'));
   } else {
-    console.log('All good, last version running');
+    this.debug('All good, last version running');
     this.emit('noUpdateFound');
   }
 };
 
 HotPush.prototype._loadLocalFile = function(filename) {
+  this.debug('loading file ' + filename);
   var head = document.getElementsByTagName("head")[0];
   var domEl;
   var time = new Date().getTime();
@@ -330,10 +359,10 @@ HotPush.prototype._loadLocalFile = function(filename) {
 */
 
 HotPush.prototype.cancel = function() {
-  this.countForCallback = 100;
   this._syncs.forEach(function(sync) {
     sync.cancel();
   });
+  this.debug('cancel', 'warn');
   this.emit('cancel');
 };
 
