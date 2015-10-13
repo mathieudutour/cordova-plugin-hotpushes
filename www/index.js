@@ -15,7 +15,7 @@ var HOTPUSH_CHECK_TYPE = {
   'TIMESTAMP': 'timestamp'
 };
 
-var PROGRESS_STATE: {
+var PROGRESS_STATE = {
   0: 'STOPPED',
   1: 'DOWNLOADING',
   2: 'EXTRACTING',
