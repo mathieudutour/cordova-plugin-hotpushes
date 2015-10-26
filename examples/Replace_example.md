@@ -4,7 +4,7 @@
 var hotpushes = HotPush.sync({
   src: 'http://myserver/hot/',
   versionFileName: 'version.json',
-  type: 'replace',
+  type: HOTPUSH_TYPE.REPLACE,
   archiveURL: 'http://myserver/hot/assets.zip'
 });
 
