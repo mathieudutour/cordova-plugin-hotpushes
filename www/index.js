@@ -39,6 +39,7 @@ var ERROR_STATE = {
  *        HOTPUSH_TYPE.MERGE download and replace only content which has changed
  *   @param {String} archiveURL is the url of the zip containing the files to hot push (if type === replace)
  *   @param {Object} headers are used to set the headers for when we send a request to the src URL
+ *   @param {Boolean} copyCordovaAssets Copy the cordova assets
  *   @param {String} documentsPath is the path to the Documents folder
  *   @param {String} checkType defines the type of check to do to see if we have the last version
  *        HOTPUSH_CHECK_TYPE.VERSION
@@ -91,6 +92,10 @@ var HotPush = function(options) {
 
   if (typeof options.documentsPath === 'undefined') {
     options.documentsPath = 'cdvfile://localhost/persistent/';
+  }
+
+  if (typeof options.copyCordovaAssets === 'undefined') {
+    options.copyCordovaAssets = true;
   }
 
   // optional version type for update checks
@@ -236,7 +241,7 @@ HotPush.prototype._hasloadedLocalFile = function() {
 */
 HotPush.prototype.update = function() {
   if (this.options.type === HOTPUSH_TYPE.REPLACE) {
-    this._syncs = [ContentSync.sync({ src: this.options.archiveURL, id: 'assets', copyCordovaAssets: true, headers: this.options.headers})];
+    this._syncs = [ContentSync.sync({ src: this.options.archiveURL, id: 'assets', copyCordovaAssets: this.options.copyCordovaAssets, headers: this.options.headers})];
 
     this.debug('Start the update...');
 
