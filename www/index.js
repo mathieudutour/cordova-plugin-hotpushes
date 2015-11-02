@@ -135,7 +135,7 @@ HotPush.prototype.check = function() {
       this.debug('fetch remoteVersion');
       // fetch remoteVersion
       var remoteRequest = new XMLHttpRequest();
-      remoteRequest.open('GET', this.options.src + this.options.versionFileName, true);
+      remoteRequest.open('GET', this.options.src + this.options.versionFileName + '?v='this.localVersion.version, true);
 
       remoteRequest.onload = function() {
         if (remoteRequest.status >= 200 && remoteRequest.status < 400) {
@@ -241,7 +241,7 @@ HotPush.prototype._hasloadedLocalFile = function() {
 */
 HotPush.prototype.update = function() {
   if (this.options.type === HOTPUSH_TYPE.REPLACE) {
-    this._syncs = [ContentSync.sync({ src: this.options.archiveURL, id: 'assets', copyCordovaAssets: this.options.copyCordovaAssets, headers: this.options.headers})];
+    this._syncs = [ContentSync.sync({ src: this.options.archiveURL + '?v='this.localVersion.version, id: 'assets', copyCordovaAssets: this.options.copyCordovaAssets, headers: this.options.headers})];
 
     this.debug('Start the update...');
 
