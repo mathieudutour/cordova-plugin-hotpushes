@@ -241,7 +241,7 @@ HotPush.prototype._hasloadedLocalFile = function() {
 */
 HotPush.prototype.update = function() {
   if (this.options.type === HOTPUSH_TYPE.REPLACE) {
-    this._syncs = [ContentSync.sync({ src: this.options.archiveURL + '?v='this.localVersion.version, id: 'assets', copyCordovaAssets: this.options.copyCordovaAssets, headers: this.options.headers})];
+    this._syncs = [ContentSync.sync({ src: this.options.archiveURL + '?v=' + this.localVersion.version, id: 'assets', copyCordovaAssets: this.options.copyCordovaAssets, headers: this.options.headers})];
 
     this.debug('Start the update...');
 
