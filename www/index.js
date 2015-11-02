@@ -135,7 +135,7 @@ HotPush.prototype.check = function() {
       this.debug('fetch remoteVersion');
       // fetch remoteVersion
       var remoteRequest = new XMLHttpRequest();
-      remoteRequest.open('GET', this.options.src + this.options.versionFileName + '?v='this.localVersion.version, true);
+      remoteRequest.open('GET', this.options.src + this.options.versionFileName + '?v=' + this.localVersion.version, true);
 
       remoteRequest.onload = function() {
         if (remoteRequest.status >= 200 && remoteRequest.status < 400) {
