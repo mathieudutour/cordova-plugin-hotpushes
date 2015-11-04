@@ -111,6 +111,7 @@ var HotPush = function contructor(options) {
   this.localVersion = null;
   this.remoteVersion = null;
   this._syncs = [];
+  this.logs = [];
 };
 
 /**
@@ -119,6 +120,7 @@ var HotPush = function contructor(options) {
 HotPush.prototype.debug = function debug(info, type) {
   var _type = type || 'log';
   if (this.options.debug) {
+    this.logs.push({type: _type, info: info});
     console[_type]('[hotpushes] ', info);
   }
 };
