@@ -295,9 +295,17 @@ HotPush.prototype._loadLocalVersion = function(callback) {
     callback();
     return;
   }
+
+  if (this._alreadyLookingForLocalVersion) { // come back in 15ms
+    setTimeout(function() {
+      this._loadLocalVersion(callback);
+    }.bind(this), 15);
+  }
+
+  this._alreadyLookingForLocalVersion = true;
+
   var previousVersionOfBundle = localStorage.getItem('hotpushes_bundleVersion');
 
-  this.localVersion = JSON.parse(localStorage.getItem('hotpushes_localVersion'));
   this.debug('Previous version of bundle - ' + previousVersionOfBundle);
   this.debug('fetch localVersion from bundle...');
 
@@ -320,6 +328,7 @@ HotPush.prototype._loadLocalVersion = function(callback) {
           callback();
         } else { // use the version we already had (maybe hotpushed)
           this.debug('Version of the bundle hasn\'t changed');
+          this.localVersion = JSON.parse(localStorage.getItem('hotpushes_localVersion'));
           this.debug('Using localVersion - ' + JSON.stringify(this.localVersion));
           callback();
         }
@@ -329,6 +338,7 @@ HotPush.prototype._loadLocalVersion = function(callback) {
       }
     } catch (err) {
       this.debug(err, 'error');
+      this.localVersion = JSON.parse(localStorage.getItem('hotpushes_localVersion'));
       if (this.localVersion) {
         return callback();
       }
@@ -338,6 +348,7 @@ HotPush.prototype._loadLocalVersion = function(callback) {
 
   request.onerror = function(err) {
     this.debug(err, 'error');
+    this.localVersion = JSON.parse(localStorage.getItem('hotpushes_localVersion'));
     if (this.localVersion) {
       return callback();
     }
