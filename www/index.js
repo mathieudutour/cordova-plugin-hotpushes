@@ -160,7 +160,6 @@ HotPush.prototype.check = function() {
     this.debug(err, 'error');
     this.emit('error', err);
   }
-
 };
 
 /**
@@ -288,12 +287,14 @@ HotPush.prototype._getLocalPath = function(filename) {
 * Fetch the local version of the version file
 */
 HotPush.prototype._loadLocalVersion = function(callback) {
-  this.localVersion = this.localVersion || JSON.parse(localStorage.getItem("hotpushes_localVersion"));
-
   if (this.localVersion) {
-    this.debug('already have localVersion - ' + JSON.stringify(this.localVersion));
+    this.debug('already loaded localVersion - ' + JSON.stringify(this.localVersion));
     return callback();
   } else {
+    var previousVersionOfBundle = localStorage.getItem("hotpushes_bundleVersion");
+
+    this.localVersion = JSON.parse(localStorage.getItem("hotpushes_localVersion"));
+    this.debug('fetch previousVersion of bundle - ' + previousVersionInBundle);
     this.debug('fetch localVersion from bundle...');
 
     // fetch bundleVersion
@@ -301,21 +302,41 @@ HotPush.prototype._loadLocalVersion = function(callback) {
     request.open('GET', this.options.versionFileName, true);
 
     request.onload = function() {
-      if (request.status === 0 || request.status >= 200 && request.status < 400) {
-        // Success!
-        this.localVersion = JSON.parse(request.responseText);
-        this.localVersion.location = 'bundle';
-        localStorage.setItem("hotpushes_localVersion", JSON.stringify(this.localVersion));
-        this.debug('found the localVersion - ' + JSON.stringify(this.localVersion));
-        callback();
-      } else {
-        this.debug('nothing on the bundle', 'error');
-        this.emit('error', new Error('no version.json in the bundle'));
+      try {
+        if (request.status === 0 || request.status >= 200 && request.status < 400) {
+          // Success!
+          var currentVersionOfBundle = request.responseText;
+
+          if (currentVersionOfBundle !== previousVersionOfBundle) { // if we have a new version in the bundle, use it
+            localStorage.setItem("hotpushes_bundleVersion", currentVersionOfBundle);
+            this.localVersion = JSON.parse(currentVersionOfBundle);
+            this.localVersion.location = 'bundle';
+            localStorage.setItem("hotpushes_localVersion", JSON.stringify(this.localVersion));
+            this.debug('Found the a new version in the bundle. Using - ' + JSON.stringify(this.localVersion));
+            callback();
+          } else { // use the version we already had (maybe hotpushed)
+            this.debug('Using localVersion - ' + JSON.stringify(this.localVersion));
+            callback();
+          }
+
+        } else {
+          this.debug('nothing on the bundle', 'error');
+          this.emit('error', new Error('no version.json in the bundle'));
+        }
+      } catch (err) {
+        this.debug(err, 'error');
+        if (this.localVersion) {
+          return callback();
+        }
+        this.emit('error', err);
       }
     }.bind(this);
 
     request.onerror = function(err) {
       this.debug(err, 'error');
+      if (this.localVersion) {
+        return callback();
+      }
       this.emit('error', err);
     }.bind(this);
 
@@ -346,27 +367,32 @@ HotPush.prototype._verifyVersions = function() {
 };
 
 HotPush.prototype._loadLocalFile = function(filename) {
-  this.debug('loading file ' + filename);
-  var head = document.getElementsByTagName("head")[0];
-  var domEl;
-  var time = new Date().getTime();
-  if (filename.split('.css').length > 1) {
-    domEl = document.createElement("link");
-    domEl.setAttribute("rel", "stylesheet");
-    domEl.setAttribute("type", "text/css");
-    domEl.setAttribute("href", this._getLocalPath(filename) + '?' + time);
-  } else if (filename.split('.js').length > 1) {
-    domEl = document.createElement('script');
-    domEl.setAttribute("type", "text/javascript");
-    domEl.setAttribute("src", this._getLocalPath(filename) + '?' + time);
-    domEl.onload = function() {
-      this._hasloadedLocalFile();
-    }.bind(this);
-    domEl.onerror = function() {
-      this._hasloadedLocalFile();
-    }.bind(this);
+  try {
+    this.debug('loading file ' + filename);
+    var head = document.getElementsByTagName("head")[0];
+    var domEl;
+    var time = new Date().getTime();
+    if (filename.split('.css').length > 1) {
+      domEl = document.createElement("link");
+      domEl.setAttribute("rel", "stylesheet");
+      domEl.setAttribute("type", "text/css");
+      domEl.setAttribute("href", this._getLocalPath(filename) + '?' + time);
+    } else if (filename.split('.js').length > 1) {
+      domEl = document.createElement('script');
+      domEl.setAttribute("type", "text/javascript");
+      domEl.setAttribute("src", this._getLocalPath(filename) + '?' + time);
+      domEl.onload = function() {
+        this._hasloadedLocalFile();
+      }.bind(this);
+      domEl.onerror = function() {
+        this._hasloadedLocalFile();
+      }.bind(this);
+    }
+    head.appendChild(domEl);
+  } catch (err) {
+    this.debug(err, 'error');
+    this.emit('error', err);
   }
-  head.appendChild(domEl);
 };
 
 /**
