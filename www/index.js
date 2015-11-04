@@ -228,7 +228,9 @@ HotPush.prototype._loadLocalFilesAtCurrentPosition = function(scriptToLoad) {
 HotPush.prototype._hasloadedLocalFile = function() {
   this._nbScriptToLoadForTheCurrentPosition--;
   this.debug('finish loading a file at position ' +
-                this._currentPosition + '(' + this._nbScriptToLoadForTheCurrentPosition + ' left)');
+                this._currentPosition + '( ' +
+                (this._nbScriptToLoadForTheCurrentPosition === -1 ? 'none' :
+                this._nbScriptToLoadForTheCurrentPosition) + ' left)');
   if (!this._nbScriptToLoadForTheCurrentPosition) {
     this._currentPosition++;
     this._loadLocalFilesAtCurrentPosition();
@@ -293,7 +295,7 @@ HotPush.prototype._loadLocalVersion = function(callback) {
   var previousVersionOfBundle = localStorage.getItem('hotpushes_bundleVersion');
 
   this.localVersion = JSON.parse(localStorage.getItem('hotpushes_localVersion'));
-  this.debug('fetch previousVersion of bundle - ' + previousVersionOfBundle);
+  this.debug('Previous version of bundle - ' + previousVersionOfBundle);
   this.debug('fetch localVersion from bundle...');
 
   // fetch bundleVersion
