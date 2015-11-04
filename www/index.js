@@ -300,6 +300,7 @@ HotPush.prototype._loadLocalVersion = function(callback) {
     setTimeout(function() {
       this._loadLocalVersion(callback);
     }.bind(this), 15);
+    return;
   }
 
   this._alreadyLookingForLocalVersion = true;
