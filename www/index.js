@@ -281,7 +281,7 @@ HotPush.prototype.update = function() {
 */
 HotPush.prototype._getLocalPath = function(filename) {
   if (this.localVersion.location === 'bundle') {
-    return '/' + filename;
+    return filename;
   }
   return this.options.documentsPath + filename;
 };
