@@ -256,6 +256,7 @@ HotPush.prototype.update = function() {
 
     this._syncs[0].on('complete', function(data) {
       this.remoteVersion.location = 'documents';
+      this.remoteVersion.path = data.localPath;
       localStorage.setItem('hotpushes_localVersion', JSON.stringify(this.remoteVersion));
       localStorage.setItem('hotpushes_lastUpdate', new Date().toString());
       this.debug('update complete : ' + JSON.stringify(data));
