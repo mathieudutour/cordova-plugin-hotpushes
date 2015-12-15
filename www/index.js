@@ -271,7 +271,7 @@ HotPush.prototype.update = function() {
 
     this._syncs[0].on('error', function(err) {
       this.debug(ERROR_STATE[err], 'error');
-      this.emit('error', err);
+      this.emit('error', new Error(ERROR_STATE[err]));
     }.bind(this));
   } else if (this.options.type === HOTPUSH_TYPE.MERGE) {
     this.debug(new Error('not implemented yet'), 'error');
