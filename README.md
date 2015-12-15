@@ -193,6 +193,14 @@ hotpushes.on('cancel', function() {
 
 Cancels the content sync operation and triggers the cancel callback.
 
+## hotpushes.lastCheck
+
+Timestamp of the last check
+
+## hotpushes.lastUpdate
+
+Timestamp of the last update
+
 
 ## HotPush.PROGRESS_STATE
 

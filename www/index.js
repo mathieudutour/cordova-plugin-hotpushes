@@ -110,6 +110,10 @@ var HotPush = function contructor(options) {
 
   this.localVersion = null;
   this.remoteVersion = null;
+
+  this.lastUpdate = localStorage.hotpushes_lastUpdate;
+  this.lastCheck = localStorage.hotpushes_lastCheck;
+
   this._syncs = [];
   this.logs = [];
 };
@@ -257,8 +261,9 @@ HotPush.prototype.update = function() {
     this._syncs[0].on('complete', function(data) {
       this.remoteVersion.location = 'documents';
       this.remoteVersion.path = data.localPath;
-      localStorage.setItem('hotpushes_localVersion', JSON.stringify(this.remoteVersion));
-      localStorage.setItem('hotpushes_lastUpdate', new Date().toString());
+      localStorage.hotpushes_localVersion = JSON.stringify(this.remoteVersion);
+      this.lastUpdate = new Date().getTime();
+      localStorage.hotpushes_lastUpdate = this.lastUpdate;
       this.debug('update complete : ' + JSON.stringify(data));
       this.debug('new localVersion - ' + JSON.stringify(this.remoteVersion));
       this.emit('updateComplete', data.localPath);
@@ -306,7 +311,7 @@ HotPush.prototype._loadLocalVersion = function(callback) {
 
   this._alreadyLookingForLocalVersion = true;
 
-  var previousVersionOfBundle = localStorage.getItem('hotpushes_bundleVersion');
+  var previousVersionOfBundle = localStorage.hotpushes_bundleVersion;
 
   this.debug('Previous version of bundle - ' + previousVersionOfBundle);
   this.debug('fetch localVersion from bundle...');
@@ -325,12 +330,12 @@ HotPush.prototype._loadLocalVersion = function(callback) {
           localStorage.setItem('hotpushes_bundleVersion', currentVersionOfBundle);
           this.localVersion = JSON.parse(currentVersionOfBundle);
           this.localVersion.location = 'bundle';
-          localStorage.setItem('hotpushes_localVersion', JSON.stringify(this.localVersion));
+          localStorage.hotpushes_localVersion = JSON.stringify(this.localVersion);
           this.debug('Found the a new version in the bundle. Using - ' + JSON.stringify(this.localVersion));
           callback();
         } else { // use the version we already had (maybe hotpushed)
           this.debug('Version of the bundle hasn\'t changed');
-          this.localVersion = JSON.parse(localStorage.getItem('hotpushes_localVersion'));
+          this.localVersion = JSON.parse(localStorage.hotpushes_localVersion);
           this.debug('Using localVersion - ' + JSON.stringify(this.localVersion));
           callback();
         }
@@ -340,7 +345,7 @@ HotPush.prototype._loadLocalVersion = function(callback) {
       }
     } catch (err) {
       this.debug(err, 'error');
-      this.localVersion = JSON.parse(localStorage.getItem('hotpushes_localVersion'));
+      this.localVersion = JSON.parse(localStorage.hotpushes_localVersion);
       if (this.localVersion) {
         return callback();
       }
@@ -350,7 +355,7 @@ HotPush.prototype._loadLocalVersion = function(callback) {
 
   request.onerror = function(err) {
     this.debug(err, 'error');
-    this.localVersion = JSON.parse(localStorage.getItem('hotpushes_localVersion'));
+    this.localVersion = JSON.parse(localStorage.hotpushes_localVersion);
     if (this.localVersion) {
       return callback();
     }
@@ -364,6 +369,8 @@ HotPush.prototype._loadLocalVersion = function(callback) {
 * Callback for async call to version files
 */
 HotPush.prototype._verifyVersions = function() {
+  this.lastCheck = new Date().getTime();
+  localStorage.hotpushes_lastCheck = this.lastCheck;
   if (this.options.checkType === HOTPUSH_CHECK_TYPE.VERSION &&
       this.localVersion.version !== this.remoteVersion.version) {
     this.debug('Found a different version, ' + this.localVersion.version + ' !== ' + this.remoteVersion.version);
