@@ -4,7 +4,7 @@
 var hotpushes = HotPush.sync({
   src: 'http://myserver/hot/',
   versionFileName: 'version.json',
-  type: HOTPUSH_TYPE.MERGE
+  type: HotPush.HOTPUSH_TYPE.MERGE
 });
 
 hotpushes.loadAllLocalFiles() // load local files
@@ -31,7 +31,7 @@ http://myserver/hot/
     version.json
 	libs.js
 	app.js
-	
+
 	styles/
 		app.css
 		libs.css
