@@ -4,7 +4,7 @@
 var hotpushes = HotPush.sync({
   src: 'http://myserver/hot/',
   versionFileName: 'version.json',
-  type: HOTPUSH_TYPE.REPLACE,
+  type: HotPush.HOTPUSH_TYPE.REPLACE,
   archiveURL: 'http://myserver/hot/assets.zip'
 });
 
@@ -98,7 +98,7 @@ This file contains the files listed in `version.json`.
 /
 	libs.js
 	app.js
-	
+
 	styles/
 		app.css
 		libs.css
