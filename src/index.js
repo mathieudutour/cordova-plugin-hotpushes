@@ -130,7 +130,7 @@ const HotPush = function contructor (options) {
 */
 HotPush.prototype.debug = function (...args) {
   if (this.options.debug) {
-    this.logs.push({args})
+    this.logs.push([args])
     console.log('[hotpushes] ', ...args)
   }
 }

@@ -132,14 +132,14 @@ var HotPush = function contructor(options) {
 * Load all local files
 */
 HotPush.prototype.debug = function () {
-  for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-    args[_key] = arguments[_key];
-  }
-
   if (this.options.debug) {
     var _console;
 
-    this.logs.push({ args: args });
+    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    this.logs.push([args]);
     (_console = console).log.apply(_console, ['[hotpushes] '].concat(args));
   }
 };
