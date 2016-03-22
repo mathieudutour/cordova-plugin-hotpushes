@@ -373,6 +373,8 @@ HotPush.prototype._getLocalVersion = function () {
       this.debug(err)
       reject(err)
     }.bind(this)
+
+    request.send()
   }.bind(this))
 }
 
