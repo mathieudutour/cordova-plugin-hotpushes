@@ -340,15 +340,18 @@ HotPush.prototype._getLocalVersion = function () {
             this.localVersion.location = 'bundle'
             localStorage.hotpushes_localVersion = JSON.stringify(this.localVersion)
             this.debug('Found a new version in the bundle', this.localVersion)
+            this._alreadyLookingForLocalVersion = false
             resolve(this.localVersion)
           } else { // use the version we already had (maybe hotpushed)
             this.debug('Version of the bundle hasn\'t changed')
             this.localVersion = JSON.parse(localStorage.hotpushes_localVersion)
             this.debug('Using localVersion', this.localVersion)
+            this._alreadyLookingForLocalVersion = false
             resolve(this.localVersion)
           }
         } else {
           const error = new Error('no version.json in the bundle')
+          this._alreadyLookingForLocalVersion = false
           this.debug(error)
           reject(error)
         }
@@ -356,11 +359,19 @@ HotPush.prototype._getLocalVersion = function () {
         this.debug(err)
         try { // fallback to localStorage
           this.localVersion = JSON.parse(localStorage.hotpushes_localVersion)
+          this._alreadyLookingForLocalVersion = false
           resolve(this.localVersion)
         } catch (e) {
+          this._alreadyLookingForLocalVersion = false
           reject(e)
         }
       }
+    }.bind(this)
+
+    request.onerror = function (err) {
+      this._alreadyLookingForLocalVersion = false
+      this.debug(err)
+      reject(err)
     }.bind(this)
   }.bind(this))
 }
