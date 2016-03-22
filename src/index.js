@@ -467,10 +467,11 @@ HotPush.prototype.emit = function (...args) {
   return true
 }
 
-HotPush.prototype.PROGRESS_STATE = PROGRESS_STATE
-HotPush.prototype.ERROR_STATE = ERROR_STATE
+HotPush.PROGRESS_STATE = PROGRESS_STATE
+HotPush.ERROR_STATE = ERROR_STATE
 
-HotPush.prototype.HOTPUSH_TYPE = HOTPUSH_TYPE
-HotPush.prototype.HOTPUSH_CHECK_TYPE = HOTPUSH_CHECK_TYPE
+HotPush.HOTPUSH_TYPE = HOTPUSH_TYPE
+HotPush.HOTPUSH_CHECK_TYPE = HOTPUSH_CHECK_TYPE
+HotPush.UPDATE = UPDATE
 
 module.exports = HotPush
