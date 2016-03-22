@@ -139,8 +139,8 @@ HotPush.prototype.debug = function (...args) {
 * Check if there is a new version available
 */
 HotPush.prototype.check = function () {
-  return new Promise((resolve, reject) => {
-    this._getLocalVersion().then((localVersion) => {
+  return new Promise(function (resolve, reject) {
+    this._getLocalVersion().then(function (localVersion) {
       try {
         const remoteRequest = new XMLHttpRequest()
         const url = this.options.src + this.options.versionFileName + '?v=' + this.localVersion.version
@@ -148,7 +148,7 @@ HotPush.prototype.check = function () {
         // fetch remoteVersion
         remoteRequest.open('GET', url, true)
 
-        remoteRequest.onload = () => {
+        remoteRequest.onload = function () {
           if (remoteRequest.status >= 200 && remoteRequest.status < 400) {
             // Success!
             const remoteVersion = JSON.parse(remoteRequest.responseText)
@@ -159,57 +159,58 @@ HotPush.prototype.check = function () {
             this.debug('nothing on the remote')
             resolve(UPDATE.NOT_FOUND)
           }
-        }
+        }.bind(this)
 
-        remoteRequest.onerror = (err) => {
+        remoteRequest.onerror = function (err) {
           this.debug(err)
           reject(err)
-        }
+        }.bind(this)
 
         remoteRequest.send()
       } catch (err) {
         this.debug(err)
         reject(err)
       }
-    }).catch(reject)
-  })
+    }.bind(this)).catch(reject)
+  }.bind(this))
 }
 
 /**
 * Load waiting local files
 */
 HotPush.prototype.loadWaitingLocalFiles = function () {
-  return new Promise((resolve, reject) => {
-    this._getLocalVersion().then((localVersion) => {
+  return new Promise(function (resolve, reject) {
+    this._getLocalVersion().then(function (localVersion) {
       this.debug('load waiting local files')
       this._currentPosition = -1
       return [localVersion, -1, false]
-    }).then(this._loadLocalFilesFromPosition)
+    }.bind(this))
+    .then(this._loadLocalFilesFromPosition)
     .then(resolve)
     .catch(reject)
-  })
+  }.bind(this))
 }
 
 /**
 * Load all local files
 */
 HotPush.prototype.loadLocalFiles = function () {
-  return new Promise((resolve, reject) => {
-    this._getLocalVersion().then((localVersion) => {
+  return new Promise(function (resolve, reject) {
+    this._getLocalVersion().then(function (localVersion) {
       this.debug('load all local files')
       this._currentPosition = 0
       return [localVersion, 0]
-    }).then(this._loadLocalFilesFromPosition)
+    }.bind(this)).then(this._loadLocalFilesFromPosition)
     .then(resolve)
     .catch(reject)
-  })
+  }.bind(this))
 }
 
 /**
 * Load local files at position
 */
 HotPush.prototype._loadLocalFilesFromPosition = function ([{files}, position, continueToNextPosition = true]) {
-  return new Promise((resolve, reject) => {
+  return new Promise(function (resolve, reject) {
     let nbScript = files.filter((file) => {
       return file.position === position &&
         file.name.split('.js').length > 1
@@ -235,19 +236,19 @@ HotPush.prototype._loadLocalFilesFromPosition = function ([{files}, position, co
       return resolve('nothing to do')
     }
 
-    files.forEach((file) => {
-      if (file.position === this._currentPosition) {
+    files.forEach(function (file) {
+      if (file.position === position) {
         this._loadLocalFile(file.name, callback)
       }
-    })
-  })
+    }.bind(this))
+  }.bind(this))
 }
 
 /**
 * Start the update
 */
 HotPush.prototype.update = function () {
-  return new Promise((resolve, reject) => {
+  return new Promise(function (resolve, reject) {
     if (this.options.type === HOTPUSH_TYPE.REPLACE) {
       this._syncs = [ContentSync.sync({
         src: this.options.archiveURL + '?v=' + this.localVersion.version,
@@ -258,12 +259,12 @@ HotPush.prototype.update = function () {
 
       this.debug('Start the update...')
 
-      this._syncs[0].on('progress', (data) => {
+      this._syncs[0].on('progress', function (data) {
         this.debug('progress: ' + PROGRESS_STATE[data.status] + ' - ' + data.progress)
         this.emit('progress', data)
-      })
+      }.bind(this))
 
-      this._syncs[0].on('complete', (data) => {
+      this._syncs[0].on('complete', function (data) {
         this.remoteVersion.location = 'documents'
         this.remoteVersion.path = data.localPath
         localStorage.hotpushes_localVersion = JSON.stringify(this.remoteVersion)
@@ -273,19 +274,19 @@ HotPush.prototype.update = function () {
         this.debug('update complete', data)
         this.debug('new localVersion', this.localVersion)
         resolve(data.localPath)
-      })
+      }.bind(this))
 
-      this._syncs[0].on('error', (err) => {
+      this._syncs[0].on('error', function (err) {
         const error = new Error(ERROR_STATE[err])
         this.debug(error)
         reject(error)
-      })
+      }.bind(this))
     } else if (this.options.type === HOTPUSH_TYPE.MERGE) {
       const error = new Error('unknown hotpush type')
       this.debug(error)
       reject(error)
     }
-  })
+  }.bind(this))
 }
 
 /**
@@ -302,7 +303,7 @@ HotPush.prototype._getLocalPath = function (filename) {
 * Fetch the local version of the version file
 */
 HotPush.prototype._getLocalVersion = function () {
-  return new Promise((resolve, reject) => {
+  return new Promise(function (resolve, reject) {
     function checkIfAlreadyThere () {
       if (this.localVersion) {
         resolve(this.localVersion)
@@ -327,7 +328,7 @@ HotPush.prototype._getLocalVersion = function () {
     const request = new XMLHttpRequest()
     request.open('GET', this.options.versionFileName, true)
 
-    request.onload = () => {
+    request.onload = function () {
       try {
         if (request.status === 0 || request.status >= 200 && request.status < 400) {
           // Success!
@@ -360,8 +361,8 @@ HotPush.prototype._getLocalVersion = function () {
           reject(e)
         }
       }
-    }
-  })
+    }.bind(this)
+  }.bind(this))
 }
 
 /**
@@ -415,11 +416,11 @@ HotPush.prototype._loadLocalFile = function (filename, callback) {
 */
 
 HotPush.prototype.cancel = function () {
-  return new Promise((resolve, reject) => {
+  return new Promise(function (resolve, reject) {
     this._syncs.forEach((sync) => sync.cancel())
     this.debug('cancel')
     resolve('canceled')
-  })
+  }.bind(this))
 }
 
 /**
