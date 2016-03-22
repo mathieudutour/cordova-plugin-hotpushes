@@ -2,30 +2,30 @@
 
 const ContentSync = cordova.require('phonegap-plugin-contentsync.ContentSync')
 
-export const HOTPUSH_TYPE = {
+const HOTPUSH_TYPE = {
   'MERGE': 'merge',
   'REPLACE': 'replace'
 }
 
-export const HOTPUSH_CHECK_TYPE = {
+const HOTPUSH_CHECK_TYPE = {
   'VERSION': 'version',
   'TIMESTAMP': 'timestamp'
 }
 
-export const PROGRESS_STATE = {
+const PROGRESS_STATE = {
   0: 'STOPPED',
   1: 'DOWNLOADING',
   2: 'EXTRACTING',
   3: 'COMPLETE'
 }
 
-export const ERROR_STATE = {
+const ERROR_STATE = {
   1: 'INVALID_URL_ERR',
   2: 'CONNECTION_ERR',
   3: 'UNZIP_ERR'
 }
 
-export const UPDATE = {
+const UPDATE = {
   NOT_FOUND: 'NOT_FOUND',
   FOUND: 'FOUND'
 }
@@ -238,7 +238,7 @@ HotPush.prototype._loadLocalFilesFromPosition = function ([{files}, position, co
 
     files.forEach(function (file) {
       if (file.position === position) {
-        this._loadLocalFile(file.name, callback)
+        this._loadLocalFile(file.name, callback.bind(this))
       }
     }.bind(this))
   }.bind(this))
@@ -311,11 +311,11 @@ HotPush.prototype._getLocalVersion = function () {
       }
 
       if (this._alreadyLookingForLocalVersion) { // come back in 15ms
-        setTimeout(checkIfAlreadyThere, 15)
+        setTimeout(checkIfAlreadyThere.bind(this), 15)
         return true
       }
     }
-    if (checkIfAlreadyThere()) { return }
+    if (checkIfAlreadyThere.call(this)) { return }
 
     this._alreadyLookingForLocalVersion = true
 
