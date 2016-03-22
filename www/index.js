@@ -3,6 +3,13 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+/* global cordova, localStorage, XMLHttpRequest */
+
+var ContentSync = cordova.require('phonegap-plugin-contentsync.ContentSync');
+
 var HOTPUSH_TYPE = exports.HOTPUSH_TYPE = {
   'MERGE': 'merge',
   'REPLACE': 'replace'
@@ -30,15 +37,6 @@ var UPDATE = exports.UPDATE = {
   NOT_FOUND: 'NOT_FOUND',
   FOUND: 'FOUND'
 };
-'use strict';
-
-var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
-
-var _constants = require('./constants');
-
-/* global cordova, localStorage, XMLHttpRequest */
-
-var ContentSync = cordova.require('phonegap-plugin-contentsync.ContentSync');
 
 /**
  * HotPush constructor.
@@ -86,16 +84,16 @@ var HotPush = function contructor(options) {
   //     HOTPUSH_TYPE.MERGE:   Download and replace only content which has changed
   //
   if (typeof options.type === 'undefined') {
-    options.type = _constants.HOTPUSH_TYPE.REPLACE;
+    options.type = HOTPUSH_TYPE.REPLACE;
   }
 
   if (options.type === 'replace' && typeof options.archiveURL === 'undefined') {
     throw new Error('The options.archiveURL argument is required when type === replace.');
   }
 
-  if (options.type === _constants.HOTPUSH_TYPE.MERGE) {
+  if (options.type === HOTPUSH_TYPE.MERGE) {
     throw new Error('not implemented yet, PR welcome https://github.com/mathieudutour/cordova-plugin-hotpushes');
-  } else if (options.type !== _constants.HOTPUSH_TYPE.REPLACE) {
+  } else if (options.type !== HOTPUSH_TYPE.REPLACE) {
     throw new Error('unknown hotpush type');
   }
 
@@ -115,9 +113,9 @@ var HotPush = function contructor(options) {
   // default check method uses timestamp
   // 'version' option will use the version number in your package.json
   if (typeof options.checkType === 'undefined') {
-    options.checkType = _constants.HOTPUSH_CHECK_TYPE.TIMESTAMP;
+    options.checkType = HOTPUSH_CHECK_TYPE.TIMESTAMP;
   }
-  if (options.checkType !== _constants.HOTPUSH_CHECK_TYPE.TIMESTAMP && options.checkType !== _constants.HOTPUSH_CHECK_TYPE.VERSION) {
+  if (options.checkType !== HOTPUSH_CHECK_TYPE.TIMESTAMP && options.checkType !== HOTPUSH_CHECK_TYPE.VERSION) {
     throw new Error('unknown hotpush check type');
   }
 
@@ -175,7 +173,7 @@ HotPush.prototype.check = function () {
               resolve(_this._verifyVersions(localVersion, remoteVersion));
             } else {
               _this.debug('nothing on the remote');
-              resolve(_constants.UPDATE.NOT_FOUND);
+              resolve(UPDATE.NOT_FOUND);
             }
           };
 
@@ -277,7 +275,7 @@ HotPush.prototype.update = function () {
   var _this5 = this;
 
   return new Promise(function (resolve, reject) {
-    if (_this5.options.type === _constants.HOTPUSH_TYPE.REPLACE) {
+    if (_this5.options.type === HOTPUSH_TYPE.REPLACE) {
       _this5._syncs = [ContentSync.sync({
         src: _this5.options.archiveURL + '?v=' + _this5.localVersion.version,
         id: 'assets',
@@ -288,7 +286,7 @@ HotPush.prototype.update = function () {
       _this5.debug('Start the update...');
 
       _this5._syncs[0].on('progress', function (data) {
-        _this5.debug('progress: ' + _constants.PROGRESS_STATE[data.status] + ' - ' + data.progress);
+        _this5.debug('progress: ' + PROGRESS_STATE[data.status] + ' - ' + data.progress);
         _this5.emit('progress', data);
       });
 
@@ -305,11 +303,11 @@ HotPush.prototype.update = function () {
       });
 
       _this5._syncs[0].on('error', function (err) {
-        var error = new Error(_constants.ERROR_STATE[err]);
+        var error = new Error(ERROR_STATE[err]);
         _this5.debug(error);
         reject(error);
       });
-    } else if (_this5.options.type === _constants.HOTPUSH_TYPE.MERGE) {
+    } else if (_this5.options.type === HOTPUSH_TYPE.MERGE) {
       var error = new Error('unknown hotpush type');
       _this5.debug(error);
       reject(error);
@@ -407,15 +405,15 @@ HotPush.prototype._getLocalVersion = function () {
 HotPush.prototype._verifyVersions = function (localVersion, remoteVersion) {
   this.lastCheck = Date.now();
   localStorage.hotpushes_lastCheck = this.lastCheck;
-  if (this.options.checkType === _constants.HOTPUSH_CHECK_TYPE.VERSION && localVersion.version !== remoteVersion.version) {
+  if (this.options.checkType === HOTPUSH_CHECK_TYPE.VERSION && localVersion.version !== remoteVersion.version) {
     this.debug('Found a different version, ' + localVersion.version + ' !== ' + remoteVersion.version);
-    return _constants.UPDATE.FOUND;
-  } else if (this.options.checkType === _constants.HOTPUSH_CHECK_TYPE.TIMESTAMP && localVersion.timestamp !== remoteVersion.timestamp) {
+    return UPDATE.FOUND;
+  } else if (this.options.checkType === HOTPUSH_CHECK_TYPE.TIMESTAMP && localVersion.timestamp !== remoteVersion.timestamp) {
     this.debug('Found a different version, ' + localVersion.timestamp + ' !== ' + remoteVersion.timestamp);
-    return _constants.UPDATE.FOUND;
+    return UPDATE.FOUND;
   }
   this.debug('All good, last version running');
-  return _constants.UPDATE.NOT_FOUND;
+  return UPDATE.NOT_FOUND;
 };
 
 HotPush.prototype._loadLocalFile = function (filename, callback) {
@@ -512,10 +510,10 @@ HotPush.prototype.emit = function () {
   return true;
 };
 
-HotPush.prototype.PROGRESS_STATE = _constants.PROGRESS_STATE;
-HotPush.prototype.ERROR_STATE = _constants.ERROR_STATE;
+HotPush.prototype.PROGRESS_STATE = PROGRESS_STATE;
+HotPush.prototype.ERROR_STATE = ERROR_STATE;
 
-HotPush.prototype.HOTPUSH_TYPE = _constants.HOTPUSH_TYPE;
-HotPush.prototype.HOTPUSH_CHECK_TYPE = _constants.HOTPUSH_CHECK_TYPE;
+HotPush.prototype.HOTPUSH_TYPE = HOTPUSH_TYPE;
+HotPush.prototype.HOTPUSH_CHECK_TYPE = HOTPUSH_CHECK_TYPE;
 
 module.exports = HotPush;
