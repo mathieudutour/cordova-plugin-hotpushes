@@ -197,7 +197,7 @@ HotPush.prototype.loadWaitingLocalFiles = function () {
       this.debug('load waiting local files');
       this._currentPosition = -1;
       return [localVersion, -1, false];
-    }.bind(this)).then(this._loadLocalFilesFromPosition).then(resolve).catch(reject);
+    }.bind(this)).then(this._loadLocalFilesFromPosition.bind(this)).then(resolve).catch(reject);
   }.bind(this));
 };
 
@@ -210,7 +210,7 @@ HotPush.prototype.loadLocalFiles = function () {
       this.debug('load all local files');
       this._currentPosition = 0;
       return [localVersion, 0];
-    }.bind(this)).then(this._loadLocalFilesFromPosition).then(resolve).catch(reject);
+    }.bind(this)).then(this._loadLocalFilesFromPosition.bind(this)).then(resolve).catch(reject);
   }.bind(this));
 };
 
