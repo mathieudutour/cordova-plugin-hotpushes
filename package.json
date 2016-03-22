@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-hotpushes",
-  "version": "0.6.2",
+  "version": "0.7.0",
   "cordova": {
     "id": "cordova-plugin-hotpushes",
     "platforms": [
@@ -27,12 +27,6 @@
   "contributors": [],
   "homepage": "https://github.com/mathieudutour/cordova-plugin-hotpushes.git",
   "devDependencies": {
-    "babel": "^5.8.23",
-    "babel-eslint": "^4.1.3",
-    "coveralls": "^2.11.4",
-    "eslint": "^1.5.0",
-    "eslint-config-airbnb": "0.1.0",
-    "mocha": "^2.1.0",
-    "should": "^7.1.0"
+    "@mathieudutour/js-fatigue": "1.0.4"
   }
 }

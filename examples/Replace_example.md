@@ -1,24 +1,24 @@
 # `replace` Example
 
 ```javascript
-var hotpushes = HotPush.sync({
+var hotpushes = new HotPush({
   src: 'http://myserver/hot/',
   versionFileName: 'version.json',
   type: HOTPUSH_TYPE.REPLACE,
   archiveURL: 'http://myserver/hot/assets.zip'
 });
 
-hotpushes.loadAllLocalFiles() // load local files
-
-hotpushes.check(); // check for update
-
-hotpushes.on('updateFound', function() {
-  hotpushes.udpate();
-});
-
-hotpushes.on('updateComplete', function() {
-  location.reload();
-});
+hotpushes.loadWaitingLocalFiles()
+  .then(hotpushes.check)
+  .then((result) => {
+    if (result === HotPush.UPDATE.FOUND) {
+      hotpushes.udpate().then(() => location.reload())
+        .catch(hotpushes.loadLocalFiles())
+    } else {
+      hotpushes.loadLocalFiles()
+    }
+  })
+  .catch(hotpushes.loadLocalFiles)
 
 ```
 
@@ -98,7 +98,7 @@ This file contains the files listed in `version.json`.
 /
 	libs.js
 	app.js
-	
+
 	styles/
 		app.css
 		libs.css

@@ -1,32 +1,44 @@
-/* global cordova:false */
+'use strict';
 
-/*!
- * Module dependencies.
- */
-
-var ContentSync = cordova.require('phonegap-plugin-contentsync.ContentSync');
-
-var HOTPUSH_TYPE = {
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+var HOTPUSH_TYPE = exports.HOTPUSH_TYPE = {
   'MERGE': 'merge',
-  'REPLACE': 'replace',
-};
-var HOTPUSH_CHECK_TYPE = {
-  'VERSION': 'version',
-  'TIMESTAMP': 'timestamp',
+  'REPLACE': 'replace'
 };
 
-var PROGRESS_STATE = {
+var HOTPUSH_CHECK_TYPE = exports.HOTPUSH_CHECK_TYPE = {
+  'VERSION': 'version',
+  'TIMESTAMP': 'timestamp'
+};
+
+var PROGRESS_STATE = exports.PROGRESS_STATE = {
   0: 'STOPPED',
   1: 'DOWNLOADING',
   2: 'EXTRACTING',
-  3: 'COMPLETE',
+  3: 'COMPLETE'
 };
 
-var ERROR_STATE = {
+var ERROR_STATE = exports.ERROR_STATE = {
   1: 'INVALID_URL_ERR',
   2: 'CONNECTION_ERR',
-  3: 'UNZIP_ERR',
+  3: 'UNZIP_ERR'
 };
+
+var UPDATE = exports.UPDATE = {
+  NOT_FOUND: 'NOT_FOUND',
+  FOUND: 'FOUND'
+};
+'use strict';
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+var _constants = require('./constants');
+
+/* global cordova, localStorage, XMLHttpRequest */
+
+var ContentSync = cordova.require('phonegap-plugin-contentsync.ContentSync');
 
 /**
  * HotPush constructor.
@@ -49,12 +61,7 @@ var ERROR_STATE = {
 
 var HotPush = function contructor(options) {
   this._handlers = {
-    'noUpdateFound': [],
-    'updateFound': [],
-    'progress': [],
-    'cancel': [],
-    'error': [],
-    'updateComplete': [],
+    'progress': []
   };
 
   // require options parameter
@@ -79,11 +86,17 @@ var HotPush = function contructor(options) {
   //     HOTPUSH_TYPE.MERGE:   Download and replace only content which has changed
   //
   if (typeof options.type === 'undefined') {
-    options.type = HOTPUSH_TYPE.REPLACE;
+    options.type = _constants.HOTPUSH_TYPE.REPLACE;
   }
 
   if (options.type === 'replace' && typeof options.archiveURL === 'undefined') {
     throw new Error('The options.archiveURL argument is required when type === replace.');
+  }
+
+  if (options.type === _constants.HOTPUSH_TYPE.MERGE) {
+    throw new Error('not implemented yet, PR welcome https://github.com/mathieudutour/cordova-plugin-hotpushes');
+  } else if (options.type !== _constants.HOTPUSH_TYPE.REPLACE) {
+    throw new Error('unknown hotpush type');
   }
 
   if (typeof options.headers === 'undefined') {
@@ -102,7 +115,10 @@ var HotPush = function contructor(options) {
   // default check method uses timestamp
   // 'version' option will use the version number in your package.json
   if (typeof options.checkType === 'undefined') {
-    options.checkType = HOTPUSH_CHECK_TYPE.TIMESTAMP;
+    options.checkType = _constants.HOTPUSH_CHECK_TYPE.TIMESTAMP;
+  }
+  if (options.checkType !== _constants.HOTPUSH_CHECK_TYPE.TIMESTAMP && options.checkType !== _constants.HOTPUSH_CHECK_TYPE.VERSION) {
+    throw new Error('unknown hotpush check type');
   }
 
   // store the options to this object instance
@@ -121,171 +137,190 @@ var HotPush = function contructor(options) {
 /**
 * Load all local files
 */
-HotPush.prototype.debug = function debug(info, type) {
-  var _type = type || 'log';
+HotPush.prototype.debug = function () {
+  for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+    args[_key] = arguments[_key];
+  }
+
   if (this.options.debug) {
-    this.logs.push({type: _type, info: info});
-    console[_type]('[hotpushes] ', info);
+    var _console;
+
+    this.logs.push({ args: args });
+    (_console = console).log.apply(_console, ['[hotpushes] '].concat(args));
   }
 };
 
 /**
 * Check if there is a new version available
 */
-HotPush.prototype.check = function check() {
-  if (!this.localVersion) {
-    this.debug('fetch localVersion');
-    this._loadLocalVersion(this.check.bind(this));
-    return;
-  }
-  // fetch localVersion
-  try {
-    var remoteRequest = new XMLHttpRequest();
-    var url = this.options.src + this.options.versionFileName + '?v=' + this.localVersion.version;
-    this.debug('fetch remote version at ' + url);
-    // fetch remoteVersion
-    remoteRequest.open('GET', url, true);
+HotPush.prototype.check = function () {
+  var _this = this;
 
-    remoteRequest.onload = function onRemoteVersionLoad() {
-      if (remoteRequest.status >= 200 && remoteRequest.status < 400) {
-        // Success!
-        this.remoteVersion = JSON.parse(remoteRequest.responseText);
-        this.debug('found remote version - ' + JSON.stringify(this.remoteVersion));
-        this._verifyVersions();
-      } else {
-        this.debug('nothing on the remote', 'warn');
-        this.emit('noUpdateFound');
+  return new Promise(function (resolve, reject) {
+    _this._getLocalVersion().then(function (localVersion) {
+      try {
+        (function () {
+          var remoteRequest = new XMLHttpRequest();
+          var url = _this.options.src + _this.options.versionFileName + '?v=' + _this.localVersion.version;
+          _this.debug('fetch remote version at ' + url);
+          // fetch remoteVersion
+          remoteRequest.open('GET', url, true);
+
+          remoteRequest.onload = function () {
+            if (remoteRequest.status >= 200 && remoteRequest.status < 400) {
+              // Success!
+              var remoteVersion = JSON.parse(remoteRequest.responseText);
+              _this.remoteVersion = JSON.parse(remoteRequest.responseText);
+              _this.debug('found remote version', _this.remoteVersion);
+              resolve(_this._verifyVersions(localVersion, remoteVersion));
+            } else {
+              _this.debug('nothing on the remote');
+              resolve(_constants.UPDATE.NOT_FOUND);
+            }
+          };
+
+          remoteRequest.onerror = function (err) {
+            _this.debug(err);
+            reject(err);
+          };
+
+          remoteRequest.send();
+        })();
+      } catch (err) {
+        _this.debug(err);
+        reject(err);
       }
-    }.bind(this);
-
-    remoteRequest.onerror = function onRemoteVersionError(err) {
-      this.debug(err, 'error');
-      this.emit('error', err);
-    }.bind(this);
-
-    remoteRequest.send();
-  } catch (err) {
-    this.debug(err, 'error');
-    this.emit('error', err);
-  }
-};
-
-HotPush.prototype._loadLocalFilesAtPosition = function _loadLocalFilesAtPosition(files, position) {
-  files.forEach(function loadFile(file) {
-    if (file.position === position) {
-      this._loadLocalFile(file.name);
-    }
+    }).catch(reject);
   });
 };
 
 /**
 * Load waiting local files
 */
-HotPush.prototype.loadWaitingLocalFiles = function loadWaitingLocalFiles() {
-  if (!this.localVersion) {
-    this.debug('fetch localVersion');
-    this._loadLocalVersion(this.loadWaitingLocalFiles.bind(this));
-    return;
-  }
-  this.debug('load waiting local files');
-  this._currentPosition = -1;
-  this._loadLocalFilesAtCurrentPosition(Infinity);
+HotPush.prototype.loadWaitingLocalFiles = function () {
+  var _this2 = this;
+
+  return new Promise(function (resolve, reject) {
+    _this2._getLocalVersion().then(function (localVersion) {
+      _this2.debug('load waiting local files');
+      _this2._currentPosition = -1;
+      return [localVersion, -1, false];
+    }).then(_this2._loadLocalFilesFromPosition).then(resolve).catch(reject);
+  });
 };
 
 /**
 * Load all local files
 */
-HotPush.prototype.loadAllLocalFiles = function loadAllLocalFiles() {
-  if (!this.localVersion) {
-    this.debug('fetch localVersion');
-    this._loadLocalVersion(this.loadAllLocalFiles.bind(this));
-    return;
-  }
-  this.debug('load all local files');
-  this._currentPosition = 0;
-  this._loadLocalFilesAtCurrentPosition();
+HotPush.prototype.loadLocalFiles = function () {
+  var _this3 = this;
+
+  return new Promise(function (resolve, reject) {
+    _this3._getLocalVersion().then(function (localVersion) {
+      _this3.debug('load all local files');
+      _this3._currentPosition = 0;
+      return [localVersion, 0];
+    }).then(_this3._loadLocalFilesFromPosition).then(resolve).catch(reject);
+  });
 };
 
 /**
 * Load local files at position
 */
-HotPush.prototype._loadLocalFilesAtCurrentPosition = function(scriptToLoad) {
-  try {
-    var files = this.localVersion.files;
-    this._nbScriptToLoadForTheCurrentPosition = scriptToLoad || files.reduce(function(a, file) {
-      return a + file.position === this._currentPosition &&
-        file.name.split('.js').length > 1 ? 1 : 0;
-    }.bind(this), 0);
-    this.debug('load local files at position ' +
-                  this._currentPosition + '(' + this._nbScriptToLoadForTheCurrentPosition + ') ...');
-    for (var i = 0; i < files.length; i++) {
-      if (files[i].position === this._currentPosition) {
-        this._loadLocalFile(files[i].name);
+HotPush.prototype._loadLocalFilesFromPosition = function (_ref) {
+  var _this4 = this;
+
+  var _ref2 = _slicedToArray(_ref, 3);
+
+  var files = _ref2[0].files;
+  var position = _ref2[1];
+  var _ref2$ = _ref2[2];
+  var continueToNextPosition = _ref2$ === undefined ? true : _ref2$;
+
+  return new Promise(function (resolve, reject) {
+    var nbScript = files.filter(function (file) {
+      return file.position === position && file.name.split('.js').length > 1;
+    }).length;
+
+    _this4.debug('load local files at position ' + position + ' (' + nbScript + ' left) ...');
+
+    function callback() {
+      nbScript--;
+      this.debug('finish loading a file at position ' + position + ' (' + (nbScript === -1 ? 'none' : nbScript) + ' left)');
+      if (!nbScript) {
+        if (continueToNextPosition) {
+          this._loadLocalFilesFromPosition([{ files: files }, ++position, continueToNextPosition]).then(resolve).catch(reject);
+        } else {
+          resolve('done');
+        }
       }
     }
-  } catch (err) {
-    this.debug(err, 'error');
-    this.emit('error', err);
-  }
-};
 
-/**
-* Called when a file has finished loading
-*/
-HotPush.prototype._hasloadedLocalFile = function() {
-  this._nbScriptToLoadForTheCurrentPosition--;
-  this.debug('finish loading a file at position ' +
-                this._currentPosition + '( ' +
-                (this._nbScriptToLoadForTheCurrentPosition === -1 ? 'none' :
-                this._nbScriptToLoadForTheCurrentPosition) + ' left)');
-  if (!this._nbScriptToLoadForTheCurrentPosition) {
-    this._currentPosition++;
-    this._loadLocalFilesAtCurrentPosition();
-  }
+    if (!files.filter(function (file) {
+      return file.position === position;
+    }).length) {
+      return resolve('nothing to do');
+    }
+
+    files.forEach(function (file) {
+      if (file.position === _this4._currentPosition) {
+        _this4._loadLocalFile(file.name, callback);
+      }
+    });
+  });
 };
 
 /**
 * Start the update
 */
-HotPush.prototype.update = function() {
-  if (this.options.type === HOTPUSH_TYPE.REPLACE) {
-    this._syncs = [ContentSync.sync({ src: this.options.archiveURL + '?v=' + this.localVersion.version, id: 'assets', copyCordovaAssets: this.options.copyCordovaAssets, headers: this.options.headers})];
+HotPush.prototype.update = function () {
+  var _this5 = this;
 
-    this.debug('Start the update...');
+  return new Promise(function (resolve, reject) {
+    if (_this5.options.type === _constants.HOTPUSH_TYPE.REPLACE) {
+      _this5._syncs = [ContentSync.sync({
+        src: _this5.options.archiveURL + '?v=' + _this5.localVersion.version,
+        id: 'assets',
+        copyCordovaAssets: _this5.options.copyCordovaAssets,
+        headers: _this5.options.headers
+      })];
 
-    this._syncs[0].on('progress', function(data) {
-      this.debug('progress: ' + PROGRESS_STATE[data.status] + ' - ' + data.progress);
-      this.emit('progress', data);
-    }.bind(this));
+      _this5.debug('Start the update...');
 
-    this._syncs[0].on('complete', function(data) {
-      this.remoteVersion.location = 'documents';
-      this.remoteVersion.path = data.localPath;
-      localStorage.hotpushes_localVersion = JSON.stringify(this.remoteVersion);
-      this.lastUpdate = new Date().getTime();
-      localStorage.hotpushes_lastUpdate = this.lastUpdate;
-      this.debug('update complete : ' + JSON.stringify(data));
-      this.debug('new localVersion - ' + JSON.stringify(this.remoteVersion));
-      this.emit('updateComplete', data.localPath);
-    }.bind(this));
+      _this5._syncs[0].on('progress', function (data) {
+        _this5.debug('progress: ' + _constants.PROGRESS_STATE[data.status] + ' - ' + data.progress);
+        _this5.emit('progress', data);
+      });
 
-    this._syncs[0].on('error', function(err) {
-      this.debug(ERROR_STATE[err], 'error');
-      this.emit('error', new Error(ERROR_STATE[err]));
-    }.bind(this));
-  } else if (this.options.type === HOTPUSH_TYPE.MERGE) {
-    this.debug(new Error('not implemented yet'), 'error');
-    this.emit('error', new Error('not implemented yet'));
-  } else {
-    this.debug(new Error('unknown hotpush type'), 'error');
-    this.emit('error', new Error('unknown hotpush type'));
-  }
+      _this5._syncs[0].on('complete', function (data) {
+        _this5.remoteVersion.location = 'documents';
+        _this5.remoteVersion.path = data.localPath;
+        localStorage.hotpushes_localVersion = JSON.stringify(_this5.remoteVersion);
+        _this5.localVersion = _this5.remoteVersion;
+        _this5.lastUpdate = Date.now();
+        localStorage.hotpushes_lastUpdate = _this5.lastUpdate;
+        _this5.debug('update complete', data);
+        _this5.debug('new localVersion', _this5.localVersion);
+        resolve(data.localPath);
+      });
+
+      _this5._syncs[0].on('error', function (err) {
+        var error = new Error(_constants.ERROR_STATE[err]);
+        _this5.debug(error);
+        reject(error);
+      });
+    } else if (_this5.options.type === _constants.HOTPUSH_TYPE.MERGE) {
+      var error = new Error('unknown hotpush type');
+      _this5.debug(error);
+      reject(error);
+    }
+  });
 };
 
 /**
 * Get the path to a local file
 */
-HotPush.prototype._getLocalPath = function(filename) {
+HotPush.prototype._getLocalPath = function (filename) {
   if (this.localVersion.location === 'bundle') {
     return filename;
   }
@@ -295,126 +330,115 @@ HotPush.prototype._getLocalPath = function(filename) {
 /**
 * Fetch the local version of the version file
 */
-HotPush.prototype._loadLocalVersion = function(callback) {
-  if (this.localVersion) {
-    this.debug('already loaded localVersion - ' + JSON.stringify(this.localVersion));
-    callback();
-    return;
-  }
+HotPush.prototype._getLocalVersion = function () {
+  var _this6 = this;
 
-  if (this._alreadyLookingForLocalVersion) { // come back in 15ms
-    setTimeout(function() {
-      this._loadLocalVersion(callback);
-    }.bind(this), 15);
-    return;
-  }
-
-  this._alreadyLookingForLocalVersion = true;
-
-  var previousVersionOfBundle = localStorage.hotpushes_bundleVersion;
-
-  this.debug('Previous version of bundle - ' + previousVersionOfBundle);
-  this.debug('fetch localVersion from bundle...');
-
-  // fetch bundleVersion
-  var request = new XMLHttpRequest();
-  request.open('GET', this.options.versionFileName, true);
-
-  request.onload = function() {
-    try {
-      if (request.status === 0 || request.status >= 200 && request.status < 400) {
-        // Success!
-        var currentVersionOfBundle = request.responseText;
-
-        if (currentVersionOfBundle !== previousVersionOfBundle) { // if we have a new version in the bundle, use it
-          localStorage.setItem('hotpushes_bundleVersion', currentVersionOfBundle);
-          this.localVersion = JSON.parse(currentVersionOfBundle);
-          this.localVersion.location = 'bundle';
-          localStorage.hotpushes_localVersion = JSON.stringify(this.localVersion);
-          this.debug('Found the a new version in the bundle. Using - ' + JSON.stringify(this.localVersion));
-          callback();
-        } else { // use the version we already had (maybe hotpushed)
-          this.debug('Version of the bundle hasn\'t changed');
-          this.localVersion = JSON.parse(localStorage.hotpushes_localVersion);
-          this.debug('Using localVersion - ' + JSON.stringify(this.localVersion));
-          callback();
-        }
-      } else {
-        this.debug('nothing on the bundle', 'error');
-        this.emit('error', new Error('no version.json in the bundle'));
-      }
-    } catch (err) {
-      this.debug(err, 'error');
-      this.localVersion = JSON.parse(localStorage.hotpushes_localVersion);
+  return new Promise(function (resolve, reject) {
+    function checkIfAlreadyThere() {
       if (this.localVersion) {
-        return callback();
+        resolve(this.localVersion);
+        return true;
       }
-      this.emit('error', err);
-    }
-  }.bind(this);
 
-  request.onerror = function(err) {
-    this.debug(err, 'error');
-    this.localVersion = JSON.parse(localStorage.hotpushes_localVersion);
-    if (this.localVersion) {
-      return callback();
+      if (this._alreadyLookingForLocalVersion) {
+        // come back in 15ms
+        setTimeout(checkIfAlreadyThere, 15);
+        return true;
+      }
     }
-    this.emit('error', err);
-  }.bind(this);
+    if (checkIfAlreadyThere()) {
+      return;
+    }
 
-  request.send();
+    _this6._alreadyLookingForLocalVersion = true;
+
+    var previousVersionOfBundle = localStorage.hotpushes_bundleVersion;
+
+    _this6.debug('Previous version of bundle - ' + previousVersionOfBundle);
+    _this6.debug('fetch localVersion from bundle...');
+
+    // fetch bundleVersion
+    var request = new XMLHttpRequest();
+    request.open('GET', _this6.options.versionFileName, true);
+
+    request.onload = function () {
+      try {
+        if (request.status === 0 || request.status >= 200 && request.status < 400) {
+          // Success!
+          var currentVersionOfBundle = request.responseText;
+
+          if (currentVersionOfBundle !== previousVersionOfBundle) {
+            // if we have a new version in the bundle, use it
+            localStorage.hotpushes_bundleVersion = currentVersionOfBundle;
+            _this6.localVersion = JSON.parse(currentVersionOfBundle);
+            _this6.localVersion.location = 'bundle';
+            localStorage.hotpushes_localVersion = JSON.stringify(_this6.localVersion);
+            _this6.debug('Found a new version in the bundle', _this6.localVersion);
+            resolve(_this6.localVersion);
+          } else {
+            // use the version we already had (maybe hotpushed)
+            _this6.debug('Version of the bundle hasn\'t changed');
+            _this6.localVersion = JSON.parse(localStorage.hotpushes_localVersion);
+            _this6.debug('Using localVersion', _this6.localVersion);
+            resolve(_this6.localVersion);
+          }
+        } else {
+          var error = new Error('no version.json in the bundle');
+          _this6.debug(error);
+          reject(error);
+        }
+      } catch (err) {
+        _this6.debug(err);
+        try {
+          // fallback to localStorage
+          _this6.localVersion = JSON.parse(localStorage.hotpushes_localVersion);
+          resolve(_this6.localVersion);
+        } catch (e) {
+          reject(e);
+        }
+      }
+    };
+  });
 };
 
 /**
 * Callback for async call to version files
 */
-HotPush.prototype._verifyVersions = function() {
-  this.lastCheck = new Date().getTime();
+HotPush.prototype._verifyVersions = function (localVersion, remoteVersion) {
+  this.lastCheck = Date.now();
   localStorage.hotpushes_lastCheck = this.lastCheck;
-  if (this.options.checkType === HOTPUSH_CHECK_TYPE.VERSION &&
-      this.localVersion.version !== this.remoteVersion.version) {
-    this.debug('Found a different version, ' + this.localVersion.version + ' !== ' + this.remoteVersion.version);
-    this.emit('updateFound');
-  } else if (this.options.checkType === HOTPUSH_CHECK_TYPE.TIMESTAMP &&
-      this.localVersion.timestamp !== this.remoteVersion.timestamp) {
-    this.debug('Found a different version, ' + this.localVersion.timestamp + ' !== ' + this.remoteVersion.timestamp);
-    this.emit('updateFound');
-  } else if (this.options.checkType !== HOTPUSH_CHECK_TYPE.TIMESTAMP &&
-      this.options.checkType !== HOTPUSH_CHECK_TYPE.VERSION) {
-    this.debug('unknown hotpush check type', 'error');
-    this.emit('error', new Error('unknown hotpush check type'));
-  } else {
-    this.debug('All good, last version running');
-    this.emit('noUpdateFound');
+  if (this.options.checkType === _constants.HOTPUSH_CHECK_TYPE.VERSION && localVersion.version !== remoteVersion.version) {
+    this.debug('Found a different version, ' + localVersion.version + ' !== ' + remoteVersion.version);
+    return _constants.UPDATE.FOUND;
+  } else if (this.options.checkType === _constants.HOTPUSH_CHECK_TYPE.TIMESTAMP && localVersion.timestamp !== remoteVersion.timestamp) {
+    this.debug('Found a different version, ' + localVersion.timestamp + ' !== ' + remoteVersion.timestamp);
+    return _constants.UPDATE.FOUND;
   }
+  this.debug('All good, last version running');
+  return _constants.UPDATE.NOT_FOUND;
 };
 
-HotPush.prototype._loadLocalFile = function(filename) {
+HotPush.prototype._loadLocalFile = function (filename, callback) {
   try {
     this.debug('loading file ' + filename);
     var head = document.getElementsByTagName('head')[0];
-    var domEl;
-    var time = new Date().getTime();
+    var domEl = void 0;
     if (filename.split('.css').length > 1) {
       domEl = document.createElement('link');
       domEl.setAttribute('rel', 'stylesheet');
       domEl.setAttribute('type', 'text/css');
-      domEl.setAttribute('href', this._getLocalPath(filename) + '?' + time);
+      domEl.setAttribute('href', this._getLocalPath(filename));
     } else if (filename.split('.js').length > 1) {
       domEl = document.createElement('script');
       domEl.setAttribute('type', 'text/javascript');
-      domEl.setAttribute('src', this._getLocalPath(filename) + '?' + time);
-      domEl.onload = function() {
-        this._hasloadedLocalFile();
-      }.bind(this);
-      domEl.onerror = function() {
-        this._hasloadedLocalFile();
-      }.bind(this);
+      domEl.setAttribute('src', this._getLocalPath(filename));
+      domEl.onload = callback;
+      domEl.onerror = callback;
     }
     head.appendChild(domEl);
   } catch (err) {
-    this.debug(err, 'error');
-    this.emit('error', err);
+    this.debug(err);
+    callback(err);
   }
 };
 
@@ -425,12 +449,16 @@ HotPush.prototype._loadLocalFile = function(filename) {
 * will be emitted.
 */
 
-HotPush.prototype.cancel = function() {
-  this._syncs.forEach(function(sync) {
-    sync.cancel();
+HotPush.prototype.cancel = function () {
+  var _this7 = this;
+
+  return new Promise(function (resolve, reject) {
+    _this7._syncs.forEach(function (sync) {
+      return sync.cancel();
+    });
+    _this7.debug('cancel');
+    resolve('canceled');
   });
-  this.debug('cancel', 'warn');
-  this.emit('cancel');
 };
 
 /**
@@ -449,7 +477,7 @@ HotPush.prototype.cancel = function() {
 * @param {Function} callback triggered on the event.
 */
 
-HotPush.prototype.on = function(eventName, callback) {
+HotPush.prototype.on = function (eventName, callback) {
   if (this._handlers.hasOwnProperty(eventName)) {
     this._handlers[eventName].push(callback);
   }
@@ -466,45 +494,28 @@ HotPush.prototype.on = function(eventName, callback) {
 * @return {Boolean} is true when the event is triggered otherwise false.
 */
 
-HotPush.prototype.emit = function() {
-  var args = Array.prototype.slice.call(arguments);
+HotPush.prototype.emit = function () {
+  for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+    args[_key2] = arguments[_key2];
+  }
+
   var eventName = args.shift();
 
   if (!this._handlers.hasOwnProperty(eventName)) {
     return false;
   }
 
-  for (var i = 0, length = this._handlers[eventName].length; i < length; i++) {
-    this._handlers[eventName][i].apply(undefined, args);
-  }
+  this._handlers[eventName].forEach(function (handler) {
+    return handler.apply(undefined, args);
+  });
 
   return true;
 };
 
-/*!
-* Hot Pushes Plugin.
-*/
+HotPush.prototype.PROGRESS_STATE = _constants.PROGRESS_STATE;
+HotPush.prototype.ERROR_STATE = _constants.ERROR_STATE;
 
-module.exports = {
-  /**
-   * Synchronize the content.
-   *
-   * This method will instantiate a new copy of the HotPush object
-   * and start synchronizing.
-   *
-   * @param {Object} options
-   * @return {HotPush} instance
-   */
+HotPush.prototype.HOTPUSH_TYPE = _constants.HOTPUSH_TYPE;
+HotPush.prototype.HOTPUSH_CHECK_TYPE = _constants.HOTPUSH_CHECK_TYPE;
 
-  sync: function(options) {
-    return new HotPush(options);
-  },
-
-  HotPush: HotPush,
-
-  PROGRESS_STATE: PROGRESS_STATE,
-  ERROR_STATE: ERROR_STATE,
-
-  HOTPUSH_TYPE: HOTPUSH_TYPE,
-  HOTPUSH_CHECK_TYPE: HOTPUSH_CHECK_TYPE,
-};
+module.exports = HotPush;

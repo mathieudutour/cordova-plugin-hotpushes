@@ -23,7 +23,7 @@ cordova plugin add cordova-plugin-hotpushes
 
 # API
 
-## HotPush.sync(options)
+## new HotPush(options)
 
 Parameter | Description
 --------- | ------------
@@ -43,87 +43,85 @@ Parameter | Description
 ### Example
 
 ```javascript
-var hotpushes = HotPush.sync({
+var hotpushes = new HotPush({
   src: 'http://myserver/hot/',
   versionFileName: 'version.json',
-  type: Hotpush.HOTPUSH_TYPE.REPLACE,
+  type: HotPush.HOTPUSH_TYPE.REPLACE,
   archiveURL: 'http://myserver/hot/assets.zip'
 });
 ```
 
 ## hotpushes.loadWaitingLocalFiles()
 
-Load the local files at position `-1` (see version.json).
+Load the local files at position `-1` (see version.json). Return a promise.
 
 Parameter | Description
 --------- | ------------
 `no parameters` |
 
-## hotpushes.loadAllLocalFiles()
+### Example
 
-Load the local files at position >= 0.
+```javascript
+hotpushes.loadWaitingLocalFiles()
+  .then((result) => console.log('waiting'))
+  .catch((err) => console.log(err));
+```
+
+## hotpushes.loadLocalFiles()
+
+Load the local files at position >= 0. Return a promise.
 
 Parameter | Description
 --------- | ------------
 `no parameters` |
+
+### Example
+
+```javascript
+hotpushes.loadLocalFiles()
+  .then((result) => console.log('all good'))
+  .catch((err) => console.log(err));
+```
 
 ## hotpushes.check()
 
-Check if there is a new version available on the server.
+Check if there is a new version available on the server. Return a promise which resolve with either `HotPush.UPDATE.FOUND` or `HotPush.UPDATE.NOT_FOUND`.
 
 Parameter | Description
 --------- | ------------
 `no parameters` |
+
+### Example
+
+```javascript
+hotpushes.check()
+  .then((result) => {
+    if (result === HotPush.UPDATE.FOUND) {
+      // do something. Maybe hotpushes.update() or show a popup ?
+    }
+  })
+  .catch((err) => console.log(err));
+```
 
 ## hotpushes.update()
 
-Download the files on the server.
+Download the files on the server. Return a promise.
 
 Parameter | Description
 --------- | ------------
 `no parameters` |
 
-
-## hotpushes.on(event, callback)
-
-Parameter | Description
---------- | ------------
-`event` | `String` Name of the event to listen to. See below for all the event names.
-`callback` | `Function` is called when the event is triggered.
-
-### hotpushes.on('updateFound', callback)
-
-The event `updateFound` will be triggered when a new update is found on the server.
-
-Callback Parameter | Description
------------------- | -----------
-`no parameters` |
-
-#### Example
+### Example
 
 ```javascript
-hotpushes.on('updateFound', function() {
-  hotpushes.update();
-});
+hotpushes.update()
+  .then(() => {
+    location.reload();
+  })
+  .catch((err) => console.log(err));
 ```
 
-### hotpushes.on('noUpdateFound', callback)
-
-The event `noUpdateFound` will be triggered when no new update is found on the server.
-
-Callback Parameter | Description
------------------- | -----------
-`no parameters` |
-
-#### Example
-
-```javascript
-hotpushes.on('noUpdateFound', function() {
-  alert('All good!');
-});
-```
-
-### hotpushes.on('progress', callback)
+## hotpushes.on('progress', callback)
 
 The event `progress` will be triggered on each update as the native platform downloads and caches the content.
 
@@ -132,7 +130,7 @@ Callback Parameter | Description
 `data.progress` | `Integer` Progress percentage between `0 - 100`. The progress includes all actions required to cache the remote content locally. This is different on each platform, but often includes requesting, downloading, and extracting the cached content along with any system cleanup tasks.
 `data.status` | `Integer` Enumeration of `PROGRESS_STATE` to describe the current progress state.
 
-#### Example
+### Example
 
 ```javascript
 hotpushes.on('progress', function(data) {
@@ -141,57 +139,9 @@ hotpushes.on('progress', function(data) {
 });
 ```
 
-### hotpushes.on('updateComplete', callback)
-
-The event `updateComplete` will be triggered when the content has been successfully cached onto the device.
-
-Callback Parameter | Description
------------------- | -----------
-`no parameters` |
-
-#### Example
-
-```javascript
-hotpushes.on('updateComplete', function() {
-  location.reload();
-});
-```
-
-### hotpushes.on('error', callback)
-
-The event `error` will trigger when an internal error occurs and the cache is aborted.
-
-Callback Parameter | Description
------------------- | -----------
-`e` | `Error` Standard JavaScript error object that describes the error.
-
-#### Example
-
-```javascript
-hotpushes.on('error', function(e) {
-    // e.message
-});
-```
-
-### hotpushes.on('cancel', callback)
-
-The event `cancel` will trigger when `hotpushes.cancel` is called.
-
-Callback Parameter | Description
------------------- | -----------
-`no parameters` |
-
-#### Example
-
-```javascript
-hotpushes.on('cancel', function() {
-    // user cancelled the hot push
-});
-```
-
 ## hotpushes.cancel()
 
-Cancels the content sync operation and triggers the cancel callback.
+Cancels the content sync operation.
 
 ## hotpushes.lastCheck
 
@@ -230,3 +180,10 @@ String      | Description
 -------     | -----------
 `version`   | `VERSION`
 `timestamp` | `TIMESTAMP`
+
+## HotPush.UPDATE
+
+String      | Description
+-------     | -----------
+`NOT_FOUND` | `NOT_FOUND`
+`FOUND`     | `FOUND`
