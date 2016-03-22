@@ -13,7 +13,7 @@ hotpushes.loadWaitingLocalFiles()
   .then((result) => {
     if (result === HotPush.UPDATE.FOUND) {
       hotpushes.udpate().then(() => location.reload())
-        .catch(hotpushes.loadLocalFiles())
+        .catch(hotpushes.loadLocalFiles)
     } else {
       hotpushes.loadLocalFiles()
     }
