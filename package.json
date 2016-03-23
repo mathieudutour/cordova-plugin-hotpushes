@@ -27,6 +27,7 @@
   "contributors": [],
   "homepage": "https://github.com/mathieudutour/cordova-plugin-hotpushes.git",
   "devDependencies": {
-    "@mathieudutour/js-fatigue": "1.0.4"
+    "@mathieudutour/js-fatigue": "^1.0.4",
+    "babel-runtime": "^6.6.1"
   }
 }
